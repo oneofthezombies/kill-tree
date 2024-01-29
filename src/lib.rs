@@ -1,4 +1,3 @@
-use std::collections::VecDeque;
 use std::env;
 
 fn is_debug() -> bool {
@@ -7,7 +6,11 @@ fn is_debug() -> bool {
 
 #[cfg(target_family = "unix")]
 pub fn tree_kill(pid: u32) -> Result<(), Box<dyn std::error::Error>> {
-    unix_impl::tree_kill(pid).map_err(|e| e.into())
+    use std::os::unix::process::CommandExt;
+    use std::process::{Child, Command};
+    let child = Command::new("your_command").args(&["your_args"]).spawn()?;
+    child.kill()?;
+    // unix_impl::tree_kill(pid).map_err(|e| e.into())
 }
 
 #[cfg(target_family = "windows")]
@@ -18,6 +21,7 @@ pub fn tree_kill(pid: u32) -> Result<(), Box<dyn std::error::Error>> {
 #[cfg(target_family = "windows")]
 mod windows_impl {
     use super::*;
+    use std::collections::VecDeque;
     use windows::Win32::{
         Foundation::{CloseHandle, ERROR_NO_MORE_FILES, E_ACCESSDENIED, HANDLE},
         System::{
