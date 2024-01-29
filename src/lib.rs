@@ -95,7 +95,7 @@ mod windows_impl {
         unsafe {
             let handle = OpenProcess(PROCESS_TERMINATE, false, pid).or_else(|e| {
                 if is_debug() {
-                    eprintln!("OpenProcess failed: {}", e);
+                    eprintln!("OpenProcess failed. pid: {}, error: {}", pid, e);
                 }
                 Err(e)
             })?;
@@ -107,7 +107,7 @@ mod windows_impl {
                     Ok(())
                 } else {
                     if is_debug() {
-                        eprintln!("TerminateProcess failed: {}", e);
+                        eprintln!("TerminateProcess failed. pid: {}, error: {}", pid, e);
                     }
                     Err(e)
                 }
@@ -129,7 +129,12 @@ mod windows_impl {
             }
         }
         while let Some(pid) = stack.pop() {
-            kill_process(pid)?;
+            kill_process(pid).and_then(|_| {
+                if is_debug() {
+                    eprintln!("Killed process. pid: {}", pid);
+                }
+                Ok(())
+            })?;
         }
         Ok(())
     }
@@ -163,10 +168,22 @@ mod tests {
     #[cfg(target_family = "windows")]
     fn already_terminated_windows() {
         let child = std::process::Command::new("cmd")
-            .args(&["/C", "echo Hello"])
+            .args(&["/C", "echo Hello terminated"])
             .spawn()
             .unwrap();
         std::thread::sleep(std::time::Duration::from_secs(2));
+        let pid = child.id();
+        tree_kill(pid).unwrap();
+    }
+
+    #[test]
+    #[cfg(target_family = "windows")]
+    fn nested_child_windows() {
+        let child = std::process::Command::new("cmd")
+            .args(&["/C", "cmd /C timeout 10"])
+            .spawn()
+            .unwrap();
+        std::thread::sleep(std::time::Duration::from_secs(3));
         let pid = child.id();
         tree_kill(pid).unwrap();
     }
