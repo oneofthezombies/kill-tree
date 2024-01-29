@@ -6,11 +6,59 @@ fn is_debug() -> bool {
 
 #[cfg(target_family = "unix")]
 pub fn tree_kill(pid: u32) -> Result<(), Box<dyn std::error::Error>> {
-    use std::os::unix::process::CommandExt;
-    use std::process::{Child, Command};
-    let child = Command::new("your_command").args(&["your_args"]).spawn()?;
-    child.kill()?;
-    // unix_impl::tree_kill(pid).map_err(|e| e.into())
+    unix_impl::tree_kill(pid).map_err(|e| e.into())
+}
+
+#[cfg(target_family = "unix")]
+mod unix_impl {
+    use super::*;
+    use nix::{
+        sys::signal::{kill, Signal},
+        unistd::Pid,
+    };
+    use std::collections::VecDeque;
+
+    fn get_children_pids(parent_pid: u32) -> Result<Vec<u32>, nix::Error> {
+        let mut children_pids = Vec::new();
+        let mut queue = VecDeque::new();
+        queue.push_back(parent_pid);
+        while let Some(pid) = queue.pop_front() {
+            for child_pid in nix::unistd::getpgid(Some(Pid::from_raw(pid as i32)))?.members()? {
+                queue.push_back(child_pid.as_raw() as u32);
+                children_pids.push(child_pid.as_raw() as u32);
+            }
+        }
+        Ok(children_pids)
+    }
+
+    fn kill_process(pid: u32) -> Result<(), nix::Error> {
+        kill(Pid::from_raw(pid as i32), Signal::SIGKILL).or_else(|e| {
+            if is_debug() {
+                eprintln!("kill failed. pid: {}, error: {}", pid, e);
+            }
+            Err(e)
+        })
+    }
+
+    pub(crate) fn tree_kill(pid: u32) -> Result<(), nix::Error> {
+        // linux max 0x400000 on 64bit
+        let mut stack = Vec::new();
+        stack.push(pid);
+        while let Some(pid) = stack.pop() {
+            for child_pid in get_children_pids(pid)? {
+                stack.push(child_pid);
+            }
+        }
+        while let Some(pid) = stack.pop() {
+            kill_process(pid).and_then(|_| {
+                if is_debug() {
+                    eprintln!("Killed process. pid: {}", pid);
+                }
+                Ok(())
+            })?;
+        }
+        Ok(())
+    }
 }
 
 #[cfg(target_family = "windows")]
@@ -118,6 +166,7 @@ mod windows_impl {
     }
 
     pub(crate) fn tree_kill(pid: u32) -> Result<(), windows::core::Error> {
+        // windows max 0xFFFFFFFF
         let mut queue = VecDeque::new();
         let mut stack = Vec::new();
         queue.push_back(pid);
@@ -146,7 +195,7 @@ mod tests {
 
     #[test]
     fn invalid_pid() {
-        assert!(tree_kill(4294967295).is_err());
+        assert!(tree_kill(0x400000).is_err());
     }
 
     #[test]
