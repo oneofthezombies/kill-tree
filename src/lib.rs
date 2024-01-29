@@ -63,7 +63,7 @@ mod unix_impl {
 
 #[cfg(target_family = "windows")]
 pub fn tree_kill(pid: u32) -> Result<(), Box<dyn std::error::Error>> {
-    windows_impl::tree_kill(pid).map_err(|e| e.into())
+    windows_impl::terminate_process_recursive(pid).map_err(|e| e.into())
 }
 
 #[cfg(target_family = "windows")]
@@ -139,7 +139,7 @@ mod windows_impl {
         }
     }
 
-    fn kill_process(pid: u32) -> Result<(), windows::core::Error> {
+    fn terminate_process(pid: u32) -> Result<(), windows::core::Error> {
         unsafe {
             let handle = OpenProcess(PROCESS_TERMINATE, false, pid).or_else(|e| {
                 if is_debug() {
@@ -165,8 +165,7 @@ mod windows_impl {
         }
     }
 
-    pub(crate) fn tree_kill(pid: u32) -> Result<(), windows::core::Error> {
-        // windows max 0xFFFFFFFF
+    pub(crate) fn terminate_process_recursive(pid: u32) -> Result<(), windows::core::Error> {
         let mut queue = VecDeque::new();
         let mut stack = Vec::new();
         queue.push_back(pid);
@@ -178,7 +177,7 @@ mod windows_impl {
             }
         }
         while let Some(pid) = stack.pop() {
-            kill_process(pid).and_then(|_| {
+            terminate_process(pid).and_then(|_| {
                 if is_debug() {
                     eprintln!("Killed process. pid: {}", pid);
                 }
@@ -194,8 +193,9 @@ mod tests {
     use super::*;
 
     #[test]
-    fn invalid_pid() {
-        assert!(tree_kill(0x400000).is_err());
+    #[cfg(target_family = "windows")]
+    fn invalid_pid_windows() {
+        assert!(tree_kill(0xFFFFFFFF).is_err());
     }
 
     #[test]
