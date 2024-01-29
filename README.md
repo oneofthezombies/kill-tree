@@ -1,5 +1,5 @@
 # tree-kill
 
-![tree-kill](assets/tree-kill.png) 
+![tree-kill](docs/images/tree-kill.png)
 
 Multi-platform recursive process kill library written in Rust.
