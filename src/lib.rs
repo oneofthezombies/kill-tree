@@ -6,7 +6,7 @@ fn is_debug() -> bool {
 
 #[cfg(target_family = "unix")]
 pub fn tree_kill(pid: u32) -> Result<(), Box<dyn std::error::Error>> {
-    unix_impl::tree_kill(pid).map_err(|e| e.into())
+    unix_impl::tree_kill(pid)
 }
 
 #[cfg(target_family = "unix")]
@@ -18,52 +18,23 @@ mod unix_impl {
     };
     use std::collections::VecDeque;
 
-    fn get_children_pids(parent_pid: u32) -> Result<Vec<u32>, nix::Error> {
-        let mut children_pids = Vec::new();
-        let mut queue = VecDeque::new();
-        queue.push_back(parent_pid);
-        while let Some(pid) = queue.pop_front() {
-            for child_pid in nix::unistd::getpgid(Some(Pid::from_raw(pid as i32)))?.members()? {
-                queue.push_back(child_pid.as_raw() as u32);
-                children_pids.push(child_pid.as_raw() as u32);
-            }
+    fn parse_pid(pid: u32) -> Result<Pid, Box<dyn std::error::Error>> {
+        if pid <= 0x400000 {
+            Ok(Pid::from_raw(pid as i32))
+        } else {
+            Err(format!("Out of range. pid: {}", pid).into())
         }
-        Ok(children_pids)
     }
 
-    fn kill_process(pid: u32) -> Result<(), nix::Error> {
-        kill(Pid::from_raw(pid as i32), Signal::SIGKILL).or_else(|e| {
-            if is_debug() {
-                eprintln!("kill failed. pid: {}, error: {}", pid, e);
-            }
-            Err(e)
-        })
-    }
-
-    pub(crate) fn tree_kill(pid: u32) -> Result<(), nix::Error> {
-        // linux max 0x400000 on 64bit
-        let mut stack = Vec::new();
-        stack.push(pid);
-        while let Some(pid) = stack.pop() {
-            for child_pid in get_children_pids(pid)? {
-                stack.push(child_pid);
-            }
-        }
-        while let Some(pid) = stack.pop() {
-            kill_process(pid).and_then(|_| {
-                if is_debug() {
-                    eprintln!("Killed process. pid: {}", pid);
-                }
-                Ok(())
-            })?;
-        }
+    pub(crate) fn tree_kill(pid: u32) -> Result<(), Box<dyn std::error::Error>> {
+        let parsed_pid = parse_pid(pid)?;
         Ok(())
     }
 }
 
 #[cfg(target_family = "windows")]
 pub fn tree_kill(pid: u32) -> Result<(), Box<dyn std::error::Error>> {
-    windows_impl::terminate_process_recursive(pid).map_err(|e| e.into())
+    windows_impl::tree_kill(pid)
 }
 
 #[cfg(target_family = "windows")]
@@ -165,7 +136,7 @@ mod windows_impl {
         }
     }
 
-    pub(crate) fn terminate_process_recursive(pid: u32) -> Result<(), windows::core::Error> {
+    pub(crate) fn tree_kill(pid: u32) -> Result<(), Box<dyn std::error::Error>> {
         let mut queue = VecDeque::new();
         let mut stack = Vec::new();
         queue.push_back(pid);
@@ -177,11 +148,17 @@ mod windows_impl {
             }
         }
         while let Some(pid) = stack.pop() {
-            terminate_process(pid).and_then(|_| {
+            terminate_process(pid)
+            .and_then(|_| {
                 if is_debug() {
                     eprintln!("Killed process. pid: {}", pid);
                 }
                 Ok(())
+            }).or_else(|e| {
+                if is_debug() {
+                    eprintln!("Failed to kill process. pid: {}, error: {}", pid, e);
+                }
+                Err(e.into())
             })?;
         }
         Ok(())
