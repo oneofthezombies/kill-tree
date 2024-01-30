@@ -1,12 +1,36 @@
 use std::env;
 
 fn is_debug() -> bool {
-    env::var("TREE_KILL_DEBUG").is_ok()
+    env::var("KILL_TREE_DEBUG").is_ok()
+}
+
+#[cfg(target_os = "linux")]
+fn get_max_pid() -> u32 {
+    0x400000
+}
+
+#[cfg(target_os = "macos")]
+fn get_max_pid() -> u32 {
+    99998
+}
+
+#[cfg(target_os = "windows")]
+fn get_max_pid() -> u32 {
+    0xFFFFFFFF
+}
+
+fn validate_pid(pid: u32) -> Result<(), Box<dyn std::error::Error>> {
+    let max_pid = get_max_pid();
+    if pid <= max_pid {
+        Ok(())
+    } else {
+        Err(format!("pid is greater than max pid. pid: {}, max pid: {}", pid, max_pid).into())
+    }
 }
 
 #[cfg(target_family = "unix")]
-pub fn tree_kill(pid: u32) -> Result<(), Box<dyn std::error::Error>> {
-    unix_impl::tree_kill(pid)
+pub fn kill_tree(pid: u32) -> Result<(), Box<dyn std::error::Error>> {
+    unix_impl::kill_tree(pid)
 }
 
 #[cfg(target_family = "unix")]
@@ -22,19 +46,19 @@ mod unix_impl {
         if pid <= 0x400000 {
             Ok(Pid::from_raw(pid as i32))
         } else {
-            Err(format!("Out of range. pid: {}", pid).into())
+            Err(format!("Unacceptable pid value: {}", pid).into())
         }
     }
 
-    pub(crate) fn tree_kill(pid: u32) -> Result<(), Box<dyn std::error::Error>> {
+    pub(crate) fn kill_tree(pid: u32) -> Result<(), Box<dyn std::error::Error>> {
         let parsed_pid = parse_pid(pid)?;
         Ok(())
     }
 }
 
 #[cfg(target_family = "windows")]
-pub fn tree_kill(pid: u32) -> Result<(), Box<dyn std::error::Error>> {
-    windows_impl::tree_kill(pid)
+pub fn kill_tree(pid: u32) -> Result<(), Box<dyn std::error::Error>> {
+    windows_impl::kill_tree(pid)
 }
 
 #[cfg(target_family = "windows")]
@@ -136,7 +160,7 @@ mod windows_impl {
         }
     }
 
-    pub(crate) fn tree_kill(pid: u32) -> Result<(), Box<dyn std::error::Error>> {
+    pub(crate) fn kill_tree(pid: u32) -> Result<(), Box<dyn std::error::Error>> {
         let mut queue = VecDeque::new();
         let mut stack = Vec::new();
         queue.push_back(pid);
@@ -172,7 +196,7 @@ mod tests {
     #[test]
     #[cfg(target_family = "windows")]
     fn invalid_pid_windows() {
-        assert!(tree_kill(0xFFFFFFFF).is_err());
+        assert!(kill_tree(0xFFFFFFFF).is_err());
     }
 
     #[test]
@@ -187,7 +211,7 @@ mod tests {
             .unwrap();
         std::thread::sleep(std::time::Duration::from_secs(1));
         let pid = child.id();
-        tree_kill(pid).unwrap();
+        kill_tree(pid).unwrap();
     }
 
     #[test]
@@ -199,7 +223,7 @@ mod tests {
             .unwrap();
         std::thread::sleep(std::time::Duration::from_secs(2));
         let pid = child.id();
-        tree_kill(pid).unwrap();
+        kill_tree(pid).unwrap();
     }
 
     #[test]
@@ -211,6 +235,6 @@ mod tests {
             .unwrap();
         std::thread::sleep(std::time::Duration::from_secs(3));
         let pid = child.id();
-        tree_kill(pid).unwrap();
+        kill_tree(pid).unwrap();
     }
 }
