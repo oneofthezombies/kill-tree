@@ -3,11 +3,17 @@
 ![logo](docs/images/logo.jpg)
 
 Multi-platform library that kills process tree. Written in Rust.  
-This project is inspired by [node-tree-kill](https://github.com/pkrumins/node-tree-kill).  Thank you 🤟.  
+This project is inspired by [node-tree-kill](https://github.com/pkrumins/node-tree-kill).  Thank you. 🤟  
 
 🚧 Development of this library is currently in progress.  
 
-## Usages
+## How to install
+
+```shell
+cargo add kill-tree
+```
+
+## How to use
 
 ```rust
 kill_tree(pid)?
