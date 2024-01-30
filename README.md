@@ -1,5 +1,5 @@
-# tree-kill
+# Kill Tree
 
-![tree-kill](docs/images/tree-kill.png)
+![logo](docs/images/logo.jpg)
 
-Multi-platform recursive process kill library written in Rust.
+Multi-platform library that kills process tree. Written in Rust.  
