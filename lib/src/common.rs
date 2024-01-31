@@ -1,63 +1,28 @@
-pub const KILL_TREE_LOG_ENV_KEY: &str = "KILL_TREE_LOG";
+use std::error::Error;
 
-// log level quiet, info, verbose
-// library default log level is quiet
-// cli default log level is info
-// cli --log-level <level> is log level <level>
-// cli -v --verbose is equivalent to --log-level verbose
-// cli -q --quiet is equivalent to --log-level quiet
-// cli --log-level and --verbose and --quiet are mutually exclusive
-// env var KILL_TREE_LOG is higher priority than cli --log-level
-
-enum LogLevel {
-    Quiet,
-    Info,
-    Verbose,
+pub struct Config {
+    signal: String,
 }
 
-impl FromStr for LogLevel {
-    fn from_str(s: &str) -> Result<Self, std::error::Error> {
-        match s.to_lowercase().as_str() {
-            "quiet" => Ok(LogLevel::Quiet),
-            "info" => Ok(LogLevel::Info),
-            "verbose" => Ok(LogLevel::Verbose),
-            _ => Err(format!("Invalid log level: {}", s).into()),
+impl Default for Config {
+    fn default() -> Self {
+        Self {
+            signal: "SIGTERM".to_string(),
         }
     }
 }
 
-impl Display for LogLevel {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match self {
-            LogLevel::Quiet => write!(f, "quiet"),
-            LogLevel::Info => write!(f, "info"),
-            LogLevel::Verbose => write!(f, "verbose"),
-        }
-    }
+pub(crate) trait TreeKillable {
+    fn kill_tree(&self) -> Result<(), Box<dyn Error>>;
 }
 
-fn parse_log_level_from_env() -> Result<LogLevel, Box<dyn std::error::Error>> {
-    match env::var(KILL_TREE_LOG_ENV_KEY) {
-        Ok(v) => Ok(v.parse()?),
-        Err(env::VarError::NotPresent) => Ok(LogLevel::Quiet),
-        Err(e) => Err(e.into()),
-    }
+pub(crate) struct TreeKiller {
+    pub(crate) process_id: u32,
+    pub(crate) config: Config,
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use std::env;
-
-    #[test]
-    fn test_parse_log_level_from_env() {
-        env::set_var(KILL_TREE_LOG_ENV_KEY, "quiet");
-        assert_eq!(parse_log_level_from_env().unwrap(), LogLevel::Quiet);
-        env::set_var(KILL_TREE_LOG_ENV_KEY, "info");
-        assert_eq!(parse_log_level_from_env().unwrap(), LogLevel::Info);
-        env::set_var(KILL_TREE_LOG_ENV_KEY, "verbose");
-        assert_eq!(parse_log_level_from_env().unwrap(), LogLevel::Verbose);
-        env::set_var(KILL_TREE_LOG_ENV_KEY, "invalid");
-        assert!(parse_log_level_from_env().is_err());
+impl TreeKiller {
+    pub(crate) fn new(process_id: u32, config: Config) -> Self {
+        Self { process_id, config }
     }
 }
