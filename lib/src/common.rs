@@ -26,7 +26,9 @@ pub(crate) struct ProcessInfo {
 }
 
 pub(crate) trait TreeKillable {
-    fn kill_tree(&self) -> Result<(), Box<dyn Error>>;
+    /// Kills the process and its children.
+    /// Returns process ids that were killed or already terminated.
+    fn kill_tree(&self) -> Result<Vec<u32>, Box<dyn Error>>;
 }
 
 pub(crate) struct TreeKiller {

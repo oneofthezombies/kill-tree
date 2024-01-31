@@ -1,4 +1,5 @@
 use crate::common::{ProcessInfo, TreeKillable, TreeKiller};
+use nix::errno::Errno;
 use nix::sys::signal::{kill, Signal};
 use nix::unistd::Pid;
 use std::error::Error;
@@ -6,10 +7,12 @@ use std::fs;
 
 const SWAPPER_PROCESS_ID: u32 = 0;
 const INIT_PROCESS_ID: u32 = 1;
+
+/// decimal 4194304
 const AVAILABLE_MAX_PROCESS_ID: u32 = 0x400000;
 
 impl TreeKillable for TreeKiller {
-    fn kill_tree(&self) -> Result<(), Box<dyn Error>> {
+    fn kill_tree(&self) -> Result<Vec<u32>, Box<dyn Error>> {
         self.validate_pid()?;
         let signal = self.parse_signal()?;
         let process_infos = self.get_process_infos()?;
@@ -18,7 +21,7 @@ impl TreeKillable for TreeKiller {
         for process_id in process_ids_to_kill.iter().rev() {
             self.kill(*process_id, signal)?;
         }
-        Ok(())
+        Ok(process_ids_to_kill)
     }
 }
 
@@ -98,6 +101,70 @@ impl TreeKiller {
     }
 
     fn kill(&self, process_id: u32, signal: Signal) -> Result<(), Box<dyn Error>> {
-        kill(Pid::from_raw(process_id as i32), signal).map_err(|e| e.into())
+        kill(Pid::from_raw(process_id as i32), signal).or_else(|e| {
+            // ESRCH: No such process.
+            // This happens when the process has already terminated.
+            // This is not an error.
+            if e == Errno::ESRCH {
+                Ok(())
+            } else {
+                Err(e.into())
+            }
+        })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::common::Config;
+    use std::{process::Command, thread, time::Duration};
+
+    #[test]
+    fn process_id_0() {
+        let result = TreeKiller::new(0, Config::default()).kill_tree();
+        assert!(result.is_err());
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            "Not allowed to kill swapper process. process id: 0"
+        );
+    }
+
+    #[test]
+    fn process_id_1() {
+        let result = TreeKiller::new(1, Config::default()).kill_tree();
+        assert!(result.is_err());
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            "Not allowed to kill init process. process id: 1"
+        );
+    }
+
+    #[test]
+    fn process_id_max_plus_1() {
+        let result = TreeKiller::new(AVAILABLE_MAX_PROCESS_ID + 1, Config::default()).kill_tree();
+        assert!(result.is_err());
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            "Process id is too large. process id: 4194305, available max process id: 4194304"
+        );
+    }
+
+    #[test]
+    fn hello_world_with_invalid_signal() {
+        let process = Command::new("node")
+            .arg("../tests/resources/hello_world.mjs")
+            .spawn()
+            .unwrap();
+        let process_id = process.id();
+        let result = TreeKiller::new(
+            process_id,
+            Config {
+                signal: "SIGINVALID".to_string(),
+            },
+        )
+        .kill_tree();
+        assert!(result.is_err());
+        assert_eq!(result.unwrap_err().to_string(), "EINVAL: Invalid argument");
     }
 }
