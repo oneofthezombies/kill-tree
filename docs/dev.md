@@ -1,8 +1,10 @@
 # Development environment
 
-## Windows
+## Host Platform
 
-host information
+### Windows
+
+#### Host Information
 
 ```sh
 # systeminfo | findstr /B /C:"OS Name" /B /C:"OS Version"
@@ -10,7 +12,7 @@ OS Name:                   Microsoft Windows 11 Pro
 OS Version:                10.0.22621 N/A Build 22621
 ```
 
-rust compiler information
+#### Rust Compiler Information
 
 ```sh
 # rustc -vV
@@ -23,9 +25,9 @@ release: 1.75.0
 LLVM version: 17.0.6
 ```
 
-## Linux
+### Linux
 
-host information
+#### Host Information
 
 ```sh
 # hostnamectl | grep -E 'Chassis:|Virtualization:|Operating System:|Kernel:|Architecture:'
@@ -36,7 +38,7 @@ Operating System: Ubuntu 22.04.3 LTS
     Architecture: x86-64
 ```
 
-rust compiler information
+#### rust compiler information
 
 ```sh
 # rustc -vV
@@ -53,6 +55,20 @@ LLVM version: 17.0.6
 
 TODO
 
+# Test environment
+
+## Requirements
+
+### Node.js
+
+Use to create multiple child processes in a multi-platform environment.  
+`sh`, `Batch` or `Powershell` scripts are not used.  
+Call `node` command from the unit tests.  
+Please ensure `node` command.
+
+#### Version
+
 ```sh
-# rustc -vV
+# node --version
+v20.11.0
 ```
