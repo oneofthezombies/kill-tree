@@ -18,7 +18,7 @@ const SYSTEM_IDLE_PROCESS_PROCESS_ID: u32 = 0;
 const SYSTEM_PROCESS_ID: u32 = 4;
 
 impl TreeKillable for TreeKiller {
-    fn kill_tree(&self) -> Result<(), Box<dyn Error>> {
+    fn kill_tree(&self) -> Result<Vec<u32>, Box<dyn Error>> {
         // self.config is not used on Windows platform yet
         let _ = self.config;
         self.validate_pid()?;
@@ -31,7 +31,7 @@ impl TreeKillable for TreeKiller {
         for process_id in process_ids_to_kill.iter().rev() {
             self.terminate_process(*process_id)?;
         }
-        Ok(())
+        Ok(process_ids_to_kill)
     }
 }
 
