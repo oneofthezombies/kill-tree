@@ -2,14 +2,18 @@
 
 ## Windows
 
+host information
+
 ```sh
 # systeminfo | findstr /B /C:"OS Name" /B /C:"OS Version"
 OS Name:                   Microsoft Windows 11 Pro
 OS Version:                10.0.22621 N/A Build 22621
 ```
 
+rust compiler information
+
 ```sh
-# rustc -Vv
+# rustc -vV
 rustc 1.75.0 (82e1608df 2023-12-21)
 binary: rustc
 commit-hash: 82e1608dfa6e0b5569232559e3d385fea5a93112
@@ -21,6 +25,8 @@ LLVM version: 17.0.6
 
 ## Linux
 
+host information
+
 ```sh
 # hostnamectl | grep -E 'Chassis:|Virtualization:|Operating System:|Kernel:|Architecture:'
          Chassis: container
@@ -30,8 +36,10 @@ Operating System: Ubuntu 22.04.3 LTS
     Architecture: x86-64
 ```
 
+rust compiler information
+
 ```sh
-# rustc -Vv
+# rustc -vV
 rustc 1.75.0 (82e1608df 2023-12-21)
 binary: rustc
 commit-hash: 82e1608dfa6e0b5569232559e3d385fea5a93112
@@ -46,7 +54,7 @@ LLVM version: 17.0.6
 TODO
 
 ```sh
-# rustc -Vv
+# rustc -vV
 ```
 
 # References
