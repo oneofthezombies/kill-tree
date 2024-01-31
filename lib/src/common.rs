@@ -26,6 +26,16 @@ impl FromStr for LogLevel {
     }
 }
 
+impl Display for LogLevel {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            LogLevel::Quiet => write!(f, "quiet"),
+            LogLevel::Info => write!(f, "info"),
+            LogLevel::Verbose => write!(f, "verbose"),
+        }
+    }
+}
+
 fn parse_log_level_from_env() -> Result<LogLevel, Box<dyn std::error::Error>> {
     match env::var(KILL_TREE_LOG_ENV_KEY) {
         Ok(v) => Ok(v.parse()?),
