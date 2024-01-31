@@ -11,7 +11,7 @@ This project is inspired by [node-tree-kill](https://github.com/pkrumins/node-tr
 
 TODO
 
-## How To Use
+## How to Use
 
 TODO
 
