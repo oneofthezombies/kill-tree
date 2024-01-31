@@ -113,3 +113,29 @@ impl TreeKiller {
         result
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::common::Config;
+
+    #[test]
+    fn process_id_0() {
+        let result = TreeKiller::new(0, Config::default()).kill_tree();
+        assert!(result.is_err());
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            "Not allowed to kill System Idle Process. process id: 0"
+        );
+    }
+
+    #[test]
+    fn process_id_4() {
+        let result = TreeKiller::new(4, Config::default()).kill_tree();
+        assert!(result.is_err());
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            "Not allowed to kill System. process id: 4"
+        );
+    }
+}
