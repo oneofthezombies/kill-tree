@@ -3,7 +3,7 @@ mod common;
 mod linux;
 #[cfg(target_os = "macos")]
 mod macos;
-#[cfg(target_os = "windows")]
+#[cfg(windows)]
 mod windows;
 
 use common::{Config, TreeKillable, TreeKiller};

@@ -4,7 +4,7 @@ version = "0.1.0"
 authors = ["oneofthezombies"]
 edition = "2021"
 
-[target.'cfg(unix)'.dependencies]
+[target.'cfg(target_os = "linux")'.dependencies]
 nix = { version = "0.27.1", features = ["signal"] }
 
 [target.'cfg(windows)'.dependencies]
