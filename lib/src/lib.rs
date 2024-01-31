@@ -1,9 +1,3 @@
-use std::env;
-
-fn is_debug() -> bool {
-    env::var("KILL_TREE_DEBUG").is_ok()
-}
-
 #[cfg(target_os = "linux")]
 fn get_max_pid() -> u32 {
     0x400000
@@ -24,7 +18,11 @@ fn validate_pid(pid: u32) -> Result<(), Box<dyn std::error::Error>> {
     if pid <= max_pid {
         Ok(())
     } else {
-        Err(format!("pid is greater than max pid. pid: {}, max pid: {}", pid, max_pid).into())
+        Err(format!(
+            "pid is greater than max pid. pid: {}, max pid: {}",
+            pid, max_pid
+        )
+        .into())
     }
 }
 
@@ -173,17 +171,18 @@ mod windows_impl {
         }
         while let Some(pid) = stack.pop() {
             terminate_process(pid)
-            .and_then(|_| {
-                if is_debug() {
-                    eprintln!("Killed process. pid: {}", pid);
-                }
-                Ok(())
-            }).or_else(|e| {
-                if is_debug() {
-                    eprintln!("Failed to kill process. pid: {}, error: {}", pid, e);
-                }
-                Err(e.into())
-            })?;
+                .and_then(|_| {
+                    if is_debug() {
+                        eprintln!("Killed process. pid: {}", pid);
+                    }
+                    Ok(())
+                })
+                .or_else(|e| {
+                    if is_debug() {
+                        eprintln!("Failed to kill process. pid: {}, error: {}", pid, e);
+                    }
+                    Err(e.into())
+                })?;
         }
         Ok(())
     }

@@ -1,0 +1,8 @@
+[package]
+name = "kill-tree-cli"
+version = "0.1.0"
+authors = ["oneofthezombies"]
+edition = "2021"
+
+[dependencies]
+kill-tree = { path = "../lib" }

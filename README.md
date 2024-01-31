@@ -11,7 +11,7 @@ This project is inspired by [node-tree-kill](https://github.com/pkrumins/node-tr
 
 ## How To Use
 
-### As a Rust Library
+### Using as Rust Package
 
 Add dependency to Cargo.toml
 
@@ -29,11 +29,4 @@ kill_tree(pid)?
 kill_tree_with_config(config)?
 ```
 
-### As a CLI Program
-
-### As a Node.js Package
-
-```sh
-# using npm
-npm install kill-tree
-```
+### Using as CLI tool
