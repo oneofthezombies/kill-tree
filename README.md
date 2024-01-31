@@ -9,9 +9,15 @@ This project is inspired by [node-tree-kill](https://github.com/pkrumins/node-tr
 
 ## Why Did I Make
 
+TODO
+
 ## How To Use
 
+TODO
+
 ### Using as Rust Package
+
+TODO
 
 Add dependency to Cargo.toml
 
@@ -29,4 +35,6 @@ kill_tree(pid)?
 kill_tree_with_config(config)?
 ```
 
-### Using as CLI tool
+### Using as CLI Tool
+
+TODO
