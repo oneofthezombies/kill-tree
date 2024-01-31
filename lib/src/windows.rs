@@ -1,8 +1,5 @@
-use crate::common::{TreeKillable, TreeKiller};
-use std::{
-    collections::{HashMap, VecDeque},
-    error::Error,
-};
+use crate::common::{ProcessInfo, TreeKillable, TreeKiller};
+use std::error::Error;
 use windows::Win32::{
     Foundation::{CloseHandle, ERROR_NO_MORE_FILES, E_ACCESSDENIED},
     System::{
@@ -22,6 +19,8 @@ const SYSTEM_PROCESS_ID: u32 = 4;
 
 impl TreeKillable for TreeKiller {
     fn kill_tree(&self) -> Result<(), Box<dyn Error>> {
+        // self.config is not used on Windows platform yet
+        let _ = self.config;
         self.validate_pid()?;
         let process_infos = self.get_process_infos()?;
         let process_id_map = self.get_process_id_map(&process_infos, |process_info| {
