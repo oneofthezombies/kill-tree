@@ -38,7 +38,7 @@ Operating System: Ubuntu 22.04.3 LTS
     Architecture: x86-64
 ```
 
-#### rust compiler information
+#### Rust Compiler Information
 
 ```sh
 # rustc -vV
@@ -51,9 +51,34 @@ release: 1.75.0
 LLVM version: 17.0.6
 ```
 
-## Macos
+### Macos
 
-TODO
+#### Host Information
+
+```sh
+# sw_vers
+ProductName:		macOS
+ProductVersion:		14.2.1
+BuildVersion:		23C71
+```
+
+```sh
+# uname -v
+Darwin Kernel Version 23.2.0: Wed Nov 15 21:53:34 PST 2023; root:xnu-10002.61.3~2/RELEASE_ARM64_T8103
+```
+
+#### Rust Compiler Information
+
+```sh
+# rustc -vV
+rustc 1.75.0 (82e1608df 2023-12-21)
+binary: rustc
+commit-hash: 82e1608dfa6e0b5569232559e3d385fea5a93112
+commit-date: 2023-12-21
+host: aarch64-apple-darwin
+release: 1.75.0
+LLVM version: 17.0.6
+```
 
 # Test environment
 
