@@ -56,20 +56,3 @@ TODO
 ```sh
 # rustc -vV
 ```
-
-# References
-
-## Windows  
-
-library: rust windows  
-repository: https://github.com/microsoft/windows-rs
-
-## Linux
-
-reference library: c libproc2  
-reference repository: https://gitlab.com/procps-ng/procps
-
-## Macos
-
-reference library: c libproc  
-reference repository: https://github.com/andrewdavidmackenzie/libproc-rs
