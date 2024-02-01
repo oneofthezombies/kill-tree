@@ -37,4 +37,21 @@ kill_tree_with_config(config)?
 
 ### Using as CLI Tool
 
-TODO
+#### Usages
+
+Below is an example of sending SIGTERM signals to a process with process ID 777, and to all child processes.  
+
+⚠️ _Signals are ignored on Windows platforms._
+
+```sh
+kill-tree 777
+```
+
+If you want to send another signal, you can enter that signal as the second parameter.  
+Below is an example of sending a SIGKILL signal to a process with process ID 777 and to all child processes.  
+
+⚠️ _Also, signals are ignored on Windows platforms._
+
+```sh
+kill-tree 777 SIGKILL
+```

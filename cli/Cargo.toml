@@ -2,7 +2,7 @@
 name = "kill-tree-cli"
 version = "0.1.0"
 authors = ["oneofthezombies"]
-description = "Multi-platform library that kill the process also with all child processes."
+description = "CLI tool that kill the process also with all child processes."
 edition = "2021"
 repository = "https://github.com/oneofthezombies/kill-tree"
 categories = ["command-line-utilities"]
