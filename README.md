@@ -13,8 +13,6 @@ TODO
 
 ## How to Use
 
-TODO
-
 ### Using as CLI Tool
 
 Below is an example of sending SIGTERM signals to a process with process ID 777, and to all child processes.  
