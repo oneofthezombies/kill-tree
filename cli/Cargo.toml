@@ -4,6 +4,12 @@ version = "0.1.0"
 authors = ["oneofthezombies"]
 description = "Multi-platform library that kill the process also with all child processes."
 edition = "2021"
+repository = "https://github.com/oneofthezombies/kill-tree"
+categories = ["command-line-utilities"]
+license = "MIT"
+readme = "README.md"
+keywords = ["process", "kill", "tree-kill", "kill-tree"]
+workspace = "../"
 
 [dependencies]
 kill-tree = { path = "../lib" }
