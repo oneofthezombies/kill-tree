@@ -5,20 +5,6 @@ use std::{error::Error, ffi::c_void, io, ptr};
 
 const AVAILABLE_MAX_PROCESS_ID: u32 = 99999 - 1;
 
-impl TreeKillable for TreeKiller {
-    fn kill_tree(&self) -> Result<Vec<u32>, Box<dyn Error>> {
-        self.validate_pid()?;
-        let signal = self.parse_signal()?;
-        let process_infos = self.get_process_infos()?;
-        let process_id_map = self.get_process_id_map(&process_infos, |_| false);
-        let process_ids_to_kill = self.get_process_ids_to_kill(&process_id_map);
-        for &process_id in process_ids_to_kill.iter().rev() {
-            self.kill(process_id, signal)?;
-        }
-        Ok(process_ids_to_kill)
-    }
-}
-
 impl TreeKiller {
     fn validate_pid(&self) -> Result<(), Box<dyn Error>> {
         self.validate_pid_with_available_max(AVAILABLE_MAX_PROCESS_ID)
@@ -85,4 +71,20 @@ impl TreeKiller {
 #[allow(warnings)]
 mod libproc {
     include!(concat!(env!("OUT_DIR"), "/libproc_bindings.rs"));
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{common::Config, kill_tree_with_config};
+
+    #[test]
+    fn process_id_max_plus_1() {
+        let result = kill_tree_with_config(AVAILABLE_MAX_PROCESS_ID + 1, Config::default());
+        assert!(result.is_err());
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            "Process id is too large. process id: 4194305, available max process id: 4194304"
+        );
+    }
 }

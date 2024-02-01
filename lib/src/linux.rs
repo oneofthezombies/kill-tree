@@ -1,36 +1,16 @@
-use crate::common::{ProcessInfo, TreeKillable, TreeKiller};
-use nix::errno::Errno;
-use nix::sys::signal::{kill, Signal};
-use nix::unistd::Pid;
+use crate::common::{ProcessInfo, TreeKiller};
 use std::error::Error;
 use std::fs;
-
-const SWAPPER_PROCESS_ID: u32 = 0;
-const INIT_PROCESS_ID: u32 = 1;
 
 /// decimal 4194304
 const AVAILABLE_MAX_PROCESS_ID: u32 = 0x400000;
 
-impl TreeKillable for TreeKiller {
-    fn kill_tree(&self) -> Result<Vec<u32>, Box<dyn Error>> {
-        self.validate_pid()?;
-        let signal = self.parse_signal()?;
-        let process_infos = self.get_process_infos()?;
-        let process_id_map = self.get_process_id_map(&process_infos, |_| false);
-        let process_ids_to_kill = self.get_process_ids_to_kill(&process_id_map);
-        for &process_id in process_ids_to_kill.iter().rev() {
-            self.kill(process_id, signal)?;
-        }
-        Ok(process_ids_to_kill)
-    }
-}
-
 impl TreeKiller {
-    fn validate_pid(&self) -> Result<(), Box<dyn Error>> {
+    pub(crate) fn validate_pid(&self) -> Result<(), Box<dyn Error>> {
         self.validate_pid_with_available_max(AVAILABLE_MAX_PROCESS_ID)
     }
 
-    fn get_process_infos(&self) -> Result<Vec<ProcessInfo>, Box<dyn Error>> {
+    pub(crate) fn get_process_infos(&self) -> Result<Vec<ProcessInfo>, Box<dyn Error>> {
         let mut process_infos = Vec::new();
         for entry in fs::read_dir("/proc")? {
             let entry = entry?;
@@ -75,7 +55,6 @@ impl TreeKiller {
 mod tests {
     use super::*;
     use crate::{common::Config, kill_tree_with_config};
-    use std::{process::Command, thread, time::Duration};
 
     #[test]
     fn process_id_max_plus_1() {
@@ -85,22 +64,5 @@ mod tests {
             result.unwrap_err().to_string(),
             "Process id is too large. process id: 4194305, available max process id: 4194304"
         );
-    }
-
-    #[test]
-    fn hello_world_with_invalid_signal() {
-        let process = Command::new("node")
-            .arg("../tests/resources/hello_world.mjs")
-            .spawn()
-            .unwrap();
-        let process_id = process.id();
-        let result = kill_tree_with_config(
-            process_id,
-            Config {
-                signal: "SIGINVALID".to_string(),
-            },
-        );
-        assert!(result.is_err());
-        assert_eq!(result.unwrap_err().to_string(), "EINVAL: Invalid argument");
     }
 }
