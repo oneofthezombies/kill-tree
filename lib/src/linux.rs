@@ -18,8 +18,8 @@ impl TreeKillable for TreeKiller {
         let process_infos = self.get_process_infos()?;
         let process_id_map = self.get_process_id_map(&process_infos, |_| false);
         let process_ids_to_kill = self.get_process_ids_to_kill(&process_id_map);
-        for process_id in process_ids_to_kill.iter().rev() {
-            self.kill(*process_id, signal)?;
+        for &process_id in process_ids_to_kill.iter().rev() {
+            self.kill(process_id, signal)?;
         }
         Ok(process_ids_to_kill)
     }
@@ -27,37 +27,7 @@ impl TreeKillable for TreeKiller {
 
 impl TreeKiller {
     fn validate_pid(&self) -> Result<(), Box<dyn Error>> {
-        match self.process_id {
-            SWAPPER_PROCESS_ID => Err(format!(
-                "Not allowed to kill swapper process. process id: {}",
-                self.process_id
-            )
-            .into()),
-            INIT_PROCESS_ID => Err(format!(
-                "Not allowed to kill init process. process id: {}",
-                self.process_id
-            )
-            .into()),
-            _ => {
-                if self.process_id <= AVAILABLE_MAX_PROCESS_ID {
-                    Ok(())
-                } else {
-                    Err(format!(
-                        "Process id is too large. process id: {}, available max process id: {}",
-                        self.process_id, AVAILABLE_MAX_PROCESS_ID
-                    )
-                    .into())
-                }
-            }
-        }
-    }
-
-    fn parse_signal(&self) -> Result<Signal, Box<dyn Error>> {
-        self.config
-            .signal
-            .as_str()
-            .parse::<Signal>()
-            .map_err(|e| e.into())
+        self.validate_pid_with_available_max(AVAILABLE_MAX_PROCESS_ID)
     }
 
     fn get_process_infos(&self) -> Result<Vec<ProcessInfo>, Box<dyn Error>> {
@@ -99,50 +69,17 @@ impl TreeKiller {
         }
         Ok(process_infos)
     }
-
-    fn kill(&self, process_id: u32, signal: Signal) -> Result<(), Box<dyn Error>> {
-        kill(Pid::from_raw(process_id as i32), signal).or_else(|e| {
-            // ESRCH: No such process.
-            // This happens when the process has already terminated.
-            // This is not an error.
-            if e == Errno::ESRCH {
-                Ok(())
-            } else {
-                Err(e.into())
-            }
-        })
-    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::common::Config;
+    use crate::{common::Config, kill_tree_with_config};
     use std::{process::Command, thread, time::Duration};
 
     #[test]
-    fn process_id_0() {
-        let result = TreeKiller::new(0, Config::default()).kill_tree();
-        assert!(result.is_err());
-        assert_eq!(
-            result.unwrap_err().to_string(),
-            "Not allowed to kill swapper process. process id: 0"
-        );
-    }
-
-    #[test]
-    fn process_id_1() {
-        let result = TreeKiller::new(1, Config::default()).kill_tree();
-        assert!(result.is_err());
-        assert_eq!(
-            result.unwrap_err().to_string(),
-            "Not allowed to kill init process. process id: 1"
-        );
-    }
-
-    #[test]
     fn process_id_max_plus_1() {
-        let result = TreeKiller::new(AVAILABLE_MAX_PROCESS_ID + 1, Config::default()).kill_tree();
+        let result = kill_tree_with_config(AVAILABLE_MAX_PROCESS_ID + 1, Config::default());
         assert!(result.is_err());
         assert_eq!(
             result.unwrap_err().to_string(),
@@ -157,13 +94,12 @@ mod tests {
             .spawn()
             .unwrap();
         let process_id = process.id();
-        let result = TreeKiller::new(
+        let result = kill_tree_with_config(
             process_id,
             Config {
                 signal: "SIGINVALID".to_string(),
             },
-        )
-        .kill_tree();
+        );
         assert!(result.is_err());
         assert_eq!(result.unwrap_err().to_string(), "EINVAL: Invalid argument");
     }

@@ -3,6 +3,8 @@ mod common;
 mod linux;
 #[cfg(target_os = "macos")]
 mod macos;
+#[cfg(unix)]
+mod unix;
 #[cfg(windows)]
 mod windows;
 

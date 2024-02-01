@@ -1,6 +1,3 @@
 [workspace]
-members = [
-    "lib",
-    "cli",
-]
+members = ["lib", "cli"]
 resolver = "2"

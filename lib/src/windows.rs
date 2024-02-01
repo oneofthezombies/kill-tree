@@ -117,11 +117,11 @@ impl TreeKiller {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::common::Config;
+    use crate::{common::Config, kill_tree_with_config};
 
     #[test]
     fn process_id_0() {
-        let result = TreeKiller::new(0, Config::default()).kill_tree();
+        let result = kill_tree_with_config(0, Config::default());
         assert!(result.is_err());
         assert_eq!(
             result.unwrap_err().to_string(),
@@ -131,7 +131,7 @@ mod tests {
 
     #[test]
     fn process_id_4() {
-        let result = TreeKiller::new(4, Config::default()).kill_tree();
+        let result = kill_tree_with_config(4, Config::default());
         assert!(result.is_err());
         assert_eq!(
             result.unwrap_err().to_string(),
