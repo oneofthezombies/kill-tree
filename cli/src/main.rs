@@ -6,6 +6,7 @@ use kill_tree::{kill_tree_with_config, Config};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let matches = command!()
+        .name("kill-tree")
         .bin_name("kill-tree")
         .arg_required_else_help(true)
         .styles(
