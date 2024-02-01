@@ -1,10 +1,10 @@
-use crate::{
-    common::{KillResult, ProcessId, ProcessInfo, TreeKillable, TreeKiller},
-    DoesNotExistInfo, KillResults, KilledInfo,
+use crate::common::{
+    KillResult, KillResults, KilledInfo, MaybeAlreadyTerminatedInfo, ProcessId, ProcessInfo,
+    TreeKillable, TreeKiller,
 };
 use std::{error::Error, ffi};
 use windows::Win32::{
-    Foundation::{CloseHandle, ERROR_NO_MORE_FILES, E_ACCESSDENIED},
+    Foundation::{CloseHandle, ERROR_NO_MORE_FILES, E_ACCESSDENIED, E_INVALIDARG},
     System::{
         Diagnostics::ToolHelp::{
             CreateToolhelp32Snapshot, Process32First, Process32Next, PROCESSENTRY32,
@@ -32,7 +32,6 @@ impl TreeKillable for TreeKiller {
         });
         let mut process_info_map = self.get_process_info_map(process_infos);
         let process_ids_to_kill = self.get_process_ids_to_kill(&process_id_map);
-        println!("process_ids_to_kill: {:?}", process_ids_to_kill);
         let mut kill_results = KillResults::new();
         for &process_id in process_ids_to_kill.iter().rev() {
             let kill_result = self.kill(process_id)?;
@@ -51,7 +50,7 @@ impl TreeKillable for TreeKiller {
                         ).into())
                     }
                 }
-                Some(e) => KillResult::DoesNotExist(DoesNotExistInfo {
+                Some(e) => KillResult::MaybeAlreadyTerminated(MaybeAlreadyTerminatedInfo {
                     process_id: process_id,
                     reason: e,
                 }),
@@ -123,23 +122,37 @@ impl TreeKiller {
     fn kill(&self, process_id: ProcessId) -> Result<Option<Box<dyn Error>>, Box<dyn Error>> {
         let result;
         unsafe {
-            let process_handle = OpenProcess(PROCESS_TERMINATE, false, process_id)?;
-            {
-                // do NOT return early from this block
-                result = TerminateProcess(process_handle, 1)
-                    .and(Ok(None))
-                    .or_else(|e| {
-                        if e.code() == E_ACCESSDENIED.into() {
-                            // Access is denied.
-                            // This happens when the process is already terminated.
-                            // This is not an error.
-                            Ok(Some(e.into()))
-                        } else {
-                            Err(e.into())
-                        }
-                    })
+            let open_result = OpenProcess(PROCESS_TERMINATE, false, process_id);
+            match open_result {
+                Ok(process_handle) => {
+                    {
+                        // do NOT return early from this block
+                        result = TerminateProcess(process_handle, 1)
+                            .and(Ok(None))
+                            .or_else(|e| {
+                                if e.code() == E_ACCESSDENIED.into() {
+                                    // Access is denied.
+                                    // This happens when the process is already terminated.
+                                    // This is not an error.
+                                    Ok(Some(e.into()))
+                                } else {
+                                    Err(e.into())
+                                }
+                            })
+                    }
+                    CloseHandle(process_handle)?;
+                }
+                Err(e) => {
+                    if e.code() == E_INVALIDARG.into() {
+                        // The parameter is incorrect.
+                        // This happens when the process is already terminated.
+                        // This is not an error.
+                        result = Ok(Some(e.into()));
+                    } else {
+                        result = Err(e.into());
+                    }
+                }
             }
-            CloseHandle(process_handle)?;
         }
         result
     }

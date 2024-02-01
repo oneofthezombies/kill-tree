@@ -2,7 +2,7 @@ use clap::{
     builder::{styling::AnsiColor, Styles},
     command, value_parser, Arg, ArgAction,
 };
-use kill_tree::{kill_tree_with_config, Config};
+use kill_tree::{kill_tree_with_config, Config, KillResult};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let matches = command!()
@@ -38,19 +38,52 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let process_id = *matches.get_one::<u32>("PROCESS_ID").unwrap();
     let signal = matches.get_one::<String>("SIGNAL").unwrap();
     let quiet = *matches.get_one::<bool>("QUIET").unwrap();
+
     let do_print = !quiet;
     if do_print {
         println!(
-            "Killing process {} with all children using signal {}",
+            "Killing process with all children. process id: {}, signal: {}",
             process_id, signal
         );
     }
-    let results = kill_tree_with_config(
+
+    let kill_results = kill_tree_with_config(
         process_id,
         Config {
             signal: signal.to_string(),
             ..Default::default()
         },
     )?;
+
+    if do_print {
+        println!(
+            "Killing is done. Number of killed processes: {}",
+            kill_results.len()
+        );
+        for (index, kill_result) in kill_results.iter().enumerate() {
+            match kill_result {
+                KillResult::Killed(killed_info) => {
+                    println!(
+                        "[{}] Killed process. process id: {}, parent process id: {}, name: {}",
+                        index,
+                        killed_info.process_id,
+                        killed_info.parent_process_id,
+                        killed_info.name
+                    );
+                }
+                KillResult::MaybeAlreadyTerminated(maybe_already_terminated_info) => {
+                    println!(
+                        "[{}] Maybe already terminated process. process id: {}, reason: {}",
+                        index,
+                        maybe_already_terminated_info.process_id,
+                        maybe_already_terminated_info.reason
+                    );
+                }
+                KillResult::InternalError(e) => {
+                    println!("[{}] Internal error occurred. error: {}", index, e);
+                }
+            }
+        }
+    }
     Ok(())
 }

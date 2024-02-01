@@ -9,7 +9,8 @@ mod unix;
 mod windows;
 
 pub use common::{
-    Config, DoesNotExistInfo, KillResult, KillResults, KilledInfo, ParentProcessId, ProcessId,
+    Config, KillResult, KillResults, KilledInfo, MaybeAlreadyTerminatedInfo, ParentProcessId,
+    ProcessId,
 };
 use common::{TreeKillable, TreeKiller};
 use std::error::Error;
@@ -178,8 +179,8 @@ mod tests {
         assert!(result.is_ok());
         let kill_results = result.unwrap();
         let kill_result = kill_results.index(0);
-        if let KillResult::DoesNotExist(does_not_exist_info) = kill_result {
-            assert_eq!(does_not_exist_info.process_id, process_id);
+        if let KillResult::MaybeAlreadyTerminated(maybe_already_terminated_info) = kill_result {
+            assert_eq!(maybe_already_terminated_info.process_id, process_id);
         } else {
             panic!("Unexpected result: {:?}", kill_result);
         }

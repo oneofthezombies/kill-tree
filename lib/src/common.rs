@@ -43,7 +43,7 @@ pub struct KilledInfo {
 }
 
 #[derive(Debug)]
-pub struct DoesNotExistInfo {
+pub struct MaybeAlreadyTerminatedInfo {
     pub process_id: ProcessId,
     pub reason: Box<dyn Error>,
 }
@@ -55,7 +55,7 @@ pub enum KillResult {
 
     /// The process does not exist.
     /// This can happen if the process was already terminated.
-    DoesNotExist(DoesNotExistInfo),
+    MaybeAlreadyTerminated(MaybeAlreadyTerminatedInfo),
 
     /// It's a case that should never happen in normal situations.
     /// In an abnormal situation, I decided that it would be better for this library to return the error than to panic.
