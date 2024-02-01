@@ -116,7 +116,6 @@ impl TreeKiller {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use crate::{common::Config, kill_tree_with_config};
 
     #[test]
