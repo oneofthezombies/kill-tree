@@ -1,7 +1,11 @@
 use nix::errno::Errno;
 
 use crate::common::{ProcessInfo, TreeKiller};
-use std::{error::Error, ffi::c_void, io, ptr};
+use std::{
+    error::Error,
+    ffi::{c_void, CStr},
+    io, ptr,
+};
 
 const AVAILABLE_MAX_PROCESS_ID: u32 = 99999 - 1;
 
@@ -59,9 +63,15 @@ impl TreeKiller {
                 }
                 return Err(error.into());
             }
+            let name = unsafe {
+                CStr::from_ptr(proc_bsdinfo.pbi_name.as_ptr())
+                    .to_str()?
+                    .to_string()
+            };
             process_infos.push(ProcessInfo {
                 process_id: process_id as u32,
                 parent_process_id: proc_bsdinfo.pbi_ppid,
+                name,
             });
         }
         Ok(process_infos)
