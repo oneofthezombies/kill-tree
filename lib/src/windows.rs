@@ -1,4 +1,7 @@
-use crate::common::{ProcessInfo, TreeKillable, TreeKiller};
+use crate::{
+    common::{KillResult, ProcessId, ProcessInfo, TreeKillable, TreeKiller},
+    DoesNotExistInfo, KillResults, KilledInfo,
+};
 use std::{error::Error, ffi};
 use windows::Win32::{
     Foundation::{CloseHandle, ERROR_NO_MORE_FILES, E_ACCESSDENIED},
@@ -18,7 +21,7 @@ const SYSTEM_IDLE_PROCESS_PROCESS_ID: u32 = 0;
 const SYSTEM_PROCESS_ID: u32 = 4;
 
 impl TreeKillable for TreeKiller {
-    fn kill_tree(&self) -> Result<Vec<u32>, Box<dyn Error>> {
+    fn kill_tree(&self) -> Result<KillResults, Box<dyn Error>> {
         // self.config is not used on Windows platform yet
         let _ = self.config;
         self.validate_pid()?;
@@ -27,11 +30,34 @@ impl TreeKillable for TreeKiller {
             // this process is System Idle Process
             process_info.parent_process_id == process_info.process_id
         });
+        let mut process_info_map = self.get_process_info_map(process_infos);
         let process_ids_to_kill = self.get_process_ids_to_kill(&process_id_map);
-        for process_id in process_ids_to_kill.iter().rev() {
-            self.terminate_process(*process_id)?;
+        println!("process_ids_to_kill: {:?}", process_ids_to_kill);
+        let mut kill_results = KillResults::new();
+        for &process_id in process_ids_to_kill.iter().rev() {
+            let kill_result = self.kill(process_id)?;
+            kill_results.push(match kill_result {
+                None => {
+                    if let Some(process_info) = process_info_map.remove(&process_id) {
+                        KillResult::Killed(KilledInfo {
+                            process_id,
+                            parent_process_id: process_info.parent_process_id,
+                            name: process_info.name,
+                        })
+                    } else {
+                        KillResult::InternalError(format!(
+                            "The process was killed but the process info does not exist. process id: {}",
+                            process_id
+                        ).into())
+                    }
+                }
+                Some(e) => KillResult::DoesNotExist(DoesNotExistInfo {
+                    process_id: process_id,
+                    reason: e,
+                }),
+            });
         }
-        Ok(process_ids_to_kill)
+        Ok(kill_results)
     }
 }
 
@@ -63,18 +89,12 @@ impl TreeKiller {
                 process_entry.dwSize = std::mem::size_of::<PROCESSENTRY32>() as u32;
                 match Process32First(snapshot_handle, &mut process_entry) {
                     Ok(_) => loop {
-                        let exe_file = ffi::CStr::from_ptr(process_entry.szExeFile.as_ptr() as _)
-                            .to_string_lossy()
-                            .into_owned();
-                        println!(
-                            "process id: {}, parent process id: {}, exe file: {}",
-                            process_entry.th32ProcessID,
-                            process_entry.th32ParentProcessID,
-                            exe_file
-                        );
                         process_infos.push(ProcessInfo {
                             process_id: process_entry.th32ProcessID,
                             parent_process_id: process_entry.th32ParentProcessID,
+                            name: ffi::CStr::from_ptr(process_entry.szExeFile.as_ptr() as _)
+                                .to_string_lossy()
+                                .into_owned(),
                         });
                         match Process32Next(snapshot_handle, &mut process_entry) {
                             Ok(_) => {}
@@ -100,22 +120,24 @@ impl TreeKiller {
         }
     }
 
-    fn terminate_process(&self, process_id: u32) -> Result<(), Box<dyn Error>> {
+    fn kill(&self, process_id: ProcessId) -> Result<Option<Box<dyn Error>>, Box<dyn Error>> {
         let result;
         unsafe {
             let process_handle = OpenProcess(PROCESS_TERMINATE, false, process_id)?;
             {
                 // do NOT return early from this block
-                result = TerminateProcess(process_handle, 1).or_else(|e| {
-                    if e.code() == E_ACCESSDENIED.into() {
-                        // Access is denied.
-                        // This happens when the process is already terminated.
-                        // This is not an error.
-                        Ok(())
-                    } else {
-                        Err(e.into())
-                    }
-                });
+                result = TerminateProcess(process_handle, 1)
+                    .and(Ok(None))
+                    .or_else(|e| {
+                        if e.code() == E_ACCESSDENIED.into() {
+                            // Access is denied.
+                            // This happens when the process is already terminated.
+                            // This is not an error.
+                            Ok(Some(e.into()))
+                        } else {
+                            Err(e.into())
+                        }
+                    })
             }
             CloseHandle(process_handle)?;
         }

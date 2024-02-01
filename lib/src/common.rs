@@ -20,15 +20,54 @@ impl Default for Config {
     }
 }
 
+pub type ProcessId = u32;
+pub type ParentProcessId = ProcessId;
+pub(crate) type ProcessIds = Vec<ProcessId>;
+
+#[derive(Debug)]
 pub(crate) struct ProcessInfo {
-    pub(crate) process_id: u32,
-    pub(crate) parent_process_id: u32,
+    pub(crate) process_id: ProcessId,
+    pub(crate) parent_process_id: ParentProcessId,
+    pub(crate) name: String,
 }
+
+pub(crate) type ProcessInfos = Vec<ProcessInfo>;
+pub(crate) type ProcessIdMap = HashMap<ProcessId, Vec<ProcessId>>;
+pub(crate) type ProcessInfoMap = HashMap<ProcessId, ProcessInfo>;
+
+#[derive(Debug)]
+pub struct KilledInfo {
+    pub process_id: ProcessId,
+    pub parent_process_id: ParentProcessId,
+    pub name: String,
+}
+
+#[derive(Debug)]
+pub struct DoesNotExistInfo {
+    pub process_id: ProcessId,
+    pub reason: Box<dyn Error>,
+}
+
+#[derive(Debug)]
+pub enum KillResult {
+    /// The process killed successfully.
+    Killed(KilledInfo),
+
+    /// The process does not exist.
+    /// This can happen if the process was already terminated.
+    DoesNotExist(DoesNotExistInfo),
+
+    /// It's a case that should never happen in normal situations.
+    /// In an abnormal situation, I decided that it would be better for this library to return the error than to panic.
+    InternalError(Box<dyn Error>),
+}
+
+pub type KillResults = Vec<KillResult>;
 
 pub(crate) trait TreeKillable {
     /// Kills the process and its children.
     /// Returns process ids that were killed or already terminated.
-    fn kill_tree(&self) -> Result<Vec<u32>, Box<dyn Error>>;
+    fn kill_tree(&self) -> Result<KillResults, Box<dyn Error>>;
 }
 
 pub(crate) struct TreeKiller {
@@ -45,18 +84,16 @@ impl TreeKiller {
         &self,
         process_infos: &[ProcessInfo],
         is_to_skip: impl Fn(&ProcessInfo) -> bool,
-    ) -> HashMap<u32, Vec<u32>> {
-        let mut process_id_map = HashMap::new();
+    ) -> ProcessIdMap {
+        let mut process_id_map = ProcessIdMap::new();
         for process_info in process_infos {
-            let parent_process_id = process_info.parent_process_id;
-            let process_id = process_info.process_id;
             if is_to_skip(process_info) {
                 continue;
             }
             let children = process_id_map
-                .entry(parent_process_id)
+                .entry(process_info.parent_process_id)
                 .or_insert_with(Vec::new);
-            children.push(process_id);
+            children.push(process_info.process_id);
         }
         for (_, children) in process_id_map.iter_mut() {
             children.sort_unstable();
@@ -64,11 +101,16 @@ impl TreeKiller {
         process_id_map
     }
 
+    pub(crate) fn get_process_info_map(&self, process_infos: ProcessInfos) -> ProcessInfoMap {
+        let mut process_info_map = ProcessInfoMap::new();
+        for process_info in process_infos {
+            process_info_map.insert(process_info.process_id, process_info);
+        }
+        process_info_map
+    }
+
     /// requested process id is first and children are next and grandchildren are next and so on
-    pub(crate) fn get_process_ids_to_kill(
-        &self,
-        process_id_map: &HashMap<u32, Vec<u32>>,
-    ) -> Vec<u32> {
+    pub(crate) fn get_process_ids_to_kill(&self, process_id_map: &ProcessIdMap) -> ProcessIds {
         let mut process_ids_to_kill = Vec::new();
         let mut queue = VecDeque::new();
         queue.push_back(self.process_id);

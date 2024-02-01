@@ -8,27 +8,31 @@ mod unix;
 #[cfg(windows)]
 mod windows;
 
+pub use common::{
+    Config, DoesNotExistInfo, KillResult, KillResults, KilledInfo, ParentProcessId, ProcessId,
+};
 use common::{TreeKillable, TreeKiller};
 use std::error::Error;
 
-pub use common::Config;
-
 /// Kills the process and its children.
 /// Returns process ids that were killed or already terminated.
-pub fn kill_tree_with_config(process_id: u32, config: Config) -> Result<Vec<u32>, Box<dyn Error>> {
+pub fn kill_tree_with_config(
+    process_id: u32,
+    config: Config,
+) -> Result<KillResults, Box<dyn Error>> {
     TreeKiller::new(process_id, config).kill_tree()
 }
 
 /// Kills the process and its children.
 /// Returns process ids that were killed or already terminated.
-pub fn kill_tree(process_id: u32) -> Result<Vec<u32>, Box<dyn Error>> {
+pub fn kill_tree(process_id: u32) -> Result<KillResults, Box<dyn Error>> {
     kill_tree_with_config(process_id, Config::default())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::{process::Command, thread, time::Duration};
+    use std::{ops::Index, process::Command, thread, time::Duration};
 
     #[test]
     fn hello_world() {
@@ -37,9 +41,15 @@ mod tests {
             .spawn()
             .unwrap();
         let process_id = process.id();
-        let result = TreeKiller::new(process_id, Config::default()).kill_tree();
+        let result = kill_tree_with_config(process_id, Config::default());
         assert!(result.is_ok());
-        assert_eq!(result.unwrap(), vec![process_id]);
+        let kill_results = result.unwrap();
+        let kill_result = kill_results.index(0);
+        if let KillResult::Killed(killed_info) = kill_result {
+            assert_eq!(killed_info.process_id, process_id);
+        } else {
+            panic!("Unexpected result: {:?}", kill_result);
+        }
     }
 
     #[test]
@@ -49,15 +59,21 @@ mod tests {
             .spawn()
             .unwrap();
         let process_id = process.id();
-        let result = TreeKiller::new(
+        let result = kill_tree_with_config(
             process_id,
             Config {
                 signal: "SIGKILL".to_string(),
+                ..Default::default()
             },
-        )
-        .kill_tree();
+        );
         assert!(result.is_ok());
-        assert_eq!(result.unwrap(), vec![process_id]);
+        let kill_results = result.unwrap();
+        let kill_result = kill_results.index(0);
+        if let KillResult::Killed(killed_info) = kill_result {
+            assert_eq!(killed_info.process_id, process_id);
+        } else {
+            panic!("Unexpected result: {:?}", kill_result);
+        }
     }
 
     #[test]
@@ -67,15 +83,21 @@ mod tests {
             .spawn()
             .unwrap();
         let process_id = process.id();
-        let result = TreeKiller::new(
+        let result = kill_tree_with_config(
             process_id,
             Config {
                 signal: "SIGTERM".to_string(),
+                ..Default::default()
             },
-        )
-        .kill_tree();
+        );
         assert!(result.is_ok());
-        assert_eq!(result.unwrap(), vec![process_id]);
+        let kill_results = result.unwrap();
+        let kill_result = kill_results.index(0);
+        if let KillResult::Killed(killed_info) = kill_result {
+            assert_eq!(killed_info.process_id, process_id);
+        } else {
+            panic!("Unexpected result: {:?}", kill_result);
+        }
     }
 
     #[test]
@@ -85,15 +107,21 @@ mod tests {
             .spawn()
             .unwrap();
         let process_id = process.id();
-        let result = TreeKiller::new(
+        let result = kill_tree_with_config(
             process_id,
             Config {
                 signal: "SIGINT".to_string(),
+                ..Default::default()
             },
-        )
-        .kill_tree();
+        );
         assert!(result.is_ok());
-        assert_eq!(result.unwrap(), vec![process_id]);
+        let kill_results = result.unwrap();
+        let kill_result = kill_results.index(0);
+        if let KillResult::Killed(killed_info) = kill_result {
+            assert_eq!(killed_info.process_id, process_id);
+        } else {
+            panic!("Unexpected result: {:?}", kill_result);
+        }
     }
 
     #[test]
@@ -103,15 +131,21 @@ mod tests {
             .spawn()
             .unwrap();
         let process_id = process.id();
-        let result = TreeKiller::new(
+        let result = kill_tree_with_config(
             process_id,
             Config {
                 signal: "SIGQUIT".to_string(),
+                ..Default::default()
             },
-        )
-        .kill_tree();
+        );
         assert!(result.is_ok());
-        assert_eq!(result.unwrap(), vec![process_id]);
+        let kill_results = result.unwrap();
+        let kill_result = kill_results.index(0);
+        if let KillResult::Killed(killed_info) = kill_result {
+            assert_eq!(killed_info.process_id, process_id);
+        } else {
+            panic!("Unexpected result: {:?}", kill_result);
+        }
     }
 
     #[test]
@@ -121,9 +155,15 @@ mod tests {
             .spawn()
             .unwrap();
         let process_id = process.id();
-        let result = TreeKiller::new(process_id, Config::default()).kill_tree();
+        let result = kill_tree_with_config(process_id, Config::default());
         assert!(result.is_ok());
-        assert_eq!(result.unwrap(), vec![process_id]);
+        let kill_results = result.unwrap();
+        let kill_result = kill_results.index(0);
+        if let KillResult::Killed(killed_info) = kill_result {
+            assert_eq!(killed_info.process_id, process_id);
+        } else {
+            panic!("Unexpected result: {:?}", kill_result);
+        }
     }
 
     #[test]
@@ -134,9 +174,15 @@ mod tests {
             .unwrap();
         let process_id = process.id();
         thread::sleep(Duration::from_secs(1));
-        let result = TreeKiller::new(process_id, Config::default()).kill_tree();
+        let result = kill_tree_with_config(process_id, Config::default());
         assert!(result.is_ok());
-        assert_eq!(result.unwrap(), vec![process_id]);
+        let kill_results = result.unwrap();
+        let kill_result = kill_results.index(0);
+        if let KillResult::DoesNotExist(does_not_exist_info) = kill_result {
+            assert_eq!(does_not_exist_info.process_id, process_id);
+        } else {
+            panic!("Unexpected result: {:?}", kill_result);
+        }
     }
 
     #[test]
