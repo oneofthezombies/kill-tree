@@ -1,62 +1,41 @@
-use std::{
-    env::{self, VarError},
-    error::Error,
-    fmt::{self, Display, Formatter},
-    str::FromStr,
-};
+use clap::{command, value_parser, Arg, ArgAction};
+use kill_tree::{kill_tree_with_config, Config};
 
-use clap::{arg, command};
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let matches = command!()
+        .bin_name("kill-tree")
+        .arg_required_else_help(true)
+        .arg(
+            Arg::new("PROCESS_ID")
+                .help("Process ID to kill with all children.")
+                .value_parser(value_parser!(u32)),
+        )
+        .arg(
+            Arg::new("SIGNAL")
+                .help("Signal to send to the processes.")
+                .default_value("SIGTERM"),
+        )
+        .arg(
+            Arg::new("QUIET")
+                .short('q')
+                .long("quiet")
+                .help("No logs are output.")
+                .action(ArgAction::SetTrue),
+        )
+        .get_matches();
 
-pub(crate) const KILL_TREE_LOG_ENV_KEY: &str = "KILL_TREE_LOG";
-
-pub(crate) enum LogLevel {
-    Quiet,
-    Info,
-    Verbose,
-}
-
-impl FromStr for LogLevel {
-    type Err = Box<dyn Error>;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s.to_lowercase().as_str() {
-            "quiet" => Ok(LogLevel::Quiet),
-            "info" => Ok(LogLevel::Info),
-            "verbose" => Ok(LogLevel::Verbose),
-            _ => Err(format!("Invalid log level: {}", s).into()),
-        }
+    let process_id = *matches.get_one::<u32>("PROCESS_ID").unwrap();
+    let signal = matches.get_one::<String>("SIGNAL").unwrap();
+    let quiet = *matches.get_one::<bool>("QUIET").unwrap();
+    let do_print = !quiet;
+    if do_print {
+        println!(
+            "Killing process {} with all children using signal {}",
+            process_id, signal
+        );
     }
-}
-
-impl Display for LogLevel {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        match self {
-            LogLevel::Quiet => write!(f, "quiet"),
-            LogLevel::Info => write!(f, "info"),
-            LogLevel::Verbose => write!(f, "verbose"),
-        }
-    }
-}
-
-fn parse_log_level_from_env() -> Result<LogLevel, Box<dyn Error>> {
-    match env::var(KILL_TREE_LOG_ENV_KEY) {
-        Ok(v) => v.parse(),
-        Err(VarError::NotPresent) => Ok(LogLevel::Quiet),
-        Err(e) => Err(e.into()),
-    }
-}
-
-fn main() {
-    println!("Hello, world!");
-    // let matches = command!()
-    //     .arg(
-    //         arg!("log-level")
-    //             .short('l')
-    //             .long("log-level")
-    //             .value_name("LEVEL")
-    //             .default_value("info")
-    //             .env(KILL_TREE_LOG_ENV_KEY)
-    //             .parse(|v| v.parse()),
-    //     )
-    //     .get_matches();
+    let mut config = Config::default();
+    config.signal = signal.to_string();
+    kill_tree_with_config(process_id, config)?;
+    Ok(())
 }

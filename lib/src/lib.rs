@@ -8,8 +8,10 @@ mod unix;
 #[cfg(windows)]
 mod windows;
 
-use common::{Config, TreeKillable, TreeKiller};
+use common::{TreeKillable, TreeKiller};
 use std::error::Error;
+
+pub use common::Config;
 
 /// Kills the process and its children.
 /// Returns process ids that were killed or already terminated.
