@@ -9,7 +9,7 @@ This project is inspired by [node-tree-kill](https://github.com/pkrumins/node-tr
 
 ## Why Did I Make
 
-TODO
+🔖 TODO
 
 ## How to Use
 
@@ -32,11 +32,11 @@ Below is an example of sending a SIGKILL signal to a process with process ID 777
 kill-tree 777 SIGKILL
 ```
 
-### Using as Rust Package
+### Using as Rust Library
 
-TODO
+🔖 TODO
 
-Add dependency to Cargo.toml
+Add `kill-tree` dependency to Cargo.toml
 
 ```toml
 # Cargo.toml
