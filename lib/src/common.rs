@@ -83,11 +83,11 @@ impl TreeKiller {
     pub(crate) fn get_process_id_map(
         &self,
         process_infos: &[ProcessInfo],
-        is_to_skip: impl Fn(&ProcessInfo) -> bool,
+        filter_process_info_to_process_id_map: impl Fn(&ProcessInfo) -> bool,
     ) -> ProcessIdMap {
         let mut process_id_map = ProcessIdMap::new();
         for process_info in process_infos {
-            if is_to_skip(process_info) {
+            if filter_process_info_to_process_id_map(process_info) {
                 continue;
             }
             let children = process_id_map
@@ -123,5 +123,43 @@ impl TreeKiller {
             }
         }
         process_ids_to_kill
+    }
+
+    pub(crate) fn kill_tree_impl(
+        &self,
+        filter_process_info_to_process_id_map: impl Fn(&ProcessInfo) -> bool,
+        kill: impl Fn(ProcessId) -> Result<Option<Box<dyn Error>>, Box<dyn Error>>,
+    ) -> Result<KillResults, Box<dyn Error>> {
+        self.validate_pid()?;
+        let process_infos = self.get_process_infos()?;
+        let process_id_map =
+            self.get_process_id_map(&process_infos, filter_process_info_to_process_id_map);
+        let mut process_info_map = self.get_process_info_map(process_infos);
+        let process_ids_to_kill = self.get_process_ids_to_kill(&process_id_map);
+        let mut kill_results = KillResults::new();
+        for &process_id in process_ids_to_kill.iter().rev() {
+            let kill_result = kill(process_id)?;
+            kill_results.push(match kill_result {
+                    None => {
+                        if let Some(process_info) = process_info_map.remove(&process_id) {
+                            KillResult::Killed(KilledInfo {
+                                process_id,
+                                parent_process_id: process_info.parent_process_id,
+                                name: process_info.name,
+                            })
+                        } else {
+                            KillResult::InternalError(format!(
+                                "The process was killed but the process info does not exist. process id: {}",
+                                process_id
+                            ).into())
+                        }
+                    }
+                    Some(e) => KillResult::MaybeAlreadyTerminated(MaybeAlreadyTerminatedInfo {
+                        process_id,
+                        reason: e,
+                    }),
+                });
+        }
+        Ok(kill_results)
     }
 }

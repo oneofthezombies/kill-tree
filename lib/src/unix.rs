@@ -1,4 +1,7 @@
-use crate::common::{TreeKillable, TreeKiller};
+use crate::{
+    common::{TreeKillable, TreeKiller},
+    KillResults, ProcessId,
+};
 use nix::{
     errno::Errno,
     sys::signal::{kill, Signal},
@@ -10,16 +13,9 @@ const KERNEL_PROCESS_ID: u32 = 0;
 const INIT_PROCESS_ID: u32 = 1;
 
 impl TreeKillable for TreeKiller {
-    fn kill_tree(&self) -> Result<Vec<u32>, Box<dyn Error>> {
-        self.validate_pid()?;
+    fn kill_tree(&self) -> Result<KillResults, Box<dyn Error>> {
         let signal = self.parse_signal()?;
-        let process_infos = self.get_process_infos()?;
-        let process_id_map = self.get_process_id_map(&process_infos, |_| false);
-        let process_ids_to_kill = self.get_process_ids_to_kill(&process_id_map);
-        for &process_id in process_ids_to_kill.iter().rev() {
-            self.kill(process_id, signal)?;
-        }
-        Ok(process_ids_to_kill)
+        self.kill_tree_impl(|_| false, |process_id| self.kill(process_id, signal))
     }
 }
 
@@ -61,17 +57,23 @@ impl TreeKiller {
             .map_err(|e| e.into())
     }
 
-    pub(crate) fn kill(&self, process_id: u32, signal: Signal) -> Result<(), Box<dyn Error>> {
-        kill(Pid::from_raw(process_id as i32), signal).or_else(|e| {
-            // ESRCH: No such process.
-            // This happens when the process has already terminated.
-            // This is not an error.
-            if e == Errno::ESRCH {
-                Ok(())
-            } else {
-                Err(e.into())
-            }
-        })
+    pub(crate) fn kill(
+        &self,
+        process_id: ProcessId,
+        signal: Signal,
+    ) -> Result<Option<Box<dyn Error>>, Box<dyn Error>> {
+        kill(Pid::from_raw(process_id as i32), signal)
+            .and(Ok(None))
+            .or_else(|e| {
+                // ESRCH: No such process.
+                // This happens when the process has already terminated.
+                // This is not an error.
+                if e == Errno::ESRCH {
+                    Ok(Some(e.into()))
+                } else {
+                    Err(e.into())
+                }
+            })
     }
 }
 

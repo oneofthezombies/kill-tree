@@ -24,39 +24,13 @@ impl TreeKillable for TreeKiller {
     fn kill_tree(&self) -> Result<KillResults, Box<dyn Error>> {
         // self.config is not used on Windows platform yet
         let _ = self.config;
-        self.validate_pid()?;
-        let process_infos = self.get_process_infos()?;
-        let process_id_map = self.get_process_id_map(&process_infos, |process_info| {
-            // this process is System Idle Process
-            process_info.parent_process_id == process_info.process_id
-        });
-        let mut process_info_map = self.get_process_info_map(process_infos);
-        let process_ids_to_kill = self.get_process_ids_to_kill(&process_id_map);
-        let mut kill_results = KillResults::new();
-        for &process_id in process_ids_to_kill.iter().rev() {
-            let kill_result = self.kill(process_id)?;
-            kill_results.push(match kill_result {
-                None => {
-                    if let Some(process_info) = process_info_map.remove(&process_id) {
-                        KillResult::Killed(KilledInfo {
-                            process_id,
-                            parent_process_id: process_info.parent_process_id,
-                            name: process_info.name,
-                        })
-                    } else {
-                        KillResult::InternalError(format!(
-                            "The process was killed but the process info does not exist. process id: {}",
-                            process_id
-                        ).into())
-                    }
-                }
-                Some(e) => KillResult::MaybeAlreadyTerminated(MaybeAlreadyTerminatedInfo {
-                    process_id: process_id,
-                    reason: e,
-                }),
-            });
-        }
-        Ok(kill_results)
+        self.kill_tree_impl(
+            |process_info| {
+                // this process is System Idle Process
+                process_info.parent_process_id == process_info.process_id
+            },
+            |process_id| self.kill(process_id),
+        )
     }
 }
 

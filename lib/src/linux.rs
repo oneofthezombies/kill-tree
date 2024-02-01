@@ -24,7 +24,7 @@ impl TreeKiller {
                         if status_path.exists() {
                             let status = fs::read_to_string(status_path)?;
                             let mut parent_process_id = None;
-                            let mut name = None;
+                            // let mut name = None;
                             for line in status.lines() {
                                 // if name and parent_process_id are both some then break
 
@@ -48,6 +48,7 @@ impl TreeKiller {
                                 process_infos.push(ProcessInfo {
                                     process_id,
                                     parent_process_id,
+                                    name: "".to_string(),
                                 });
                             }
                         }

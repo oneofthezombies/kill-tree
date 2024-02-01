@@ -33,7 +33,12 @@ pub fn kill_tree(process_id: u32) -> Result<KillResults, Box<dyn Error>> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::{ops::Index, process::Command, thread, time::Duration};
+    use std::{
+        ops::Index,
+        process::{Command, Stdio},
+        thread,
+        time::Duration,
+    };
 
     #[test]
     fn hello_world() {
@@ -168,13 +173,16 @@ mod tests {
     }
 
     #[test]
-    fn hello_world_after_wait_1() {
-        let process = Command::new("node")
+    fn hello_world_wait_after() {
+        let mut process = Command::new("node")
+            .stdin(Stdio::null())
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
             .arg("../tests/resources/hello_world.mjs")
             .spawn()
             .unwrap();
         let process_id = process.id();
-        thread::sleep(Duration::from_secs(1));
+        process.wait().unwrap();
         let result = kill_tree_with_config(process_id, Config::default());
         assert!(result.is_ok());
         let kill_results = result.unwrap();
