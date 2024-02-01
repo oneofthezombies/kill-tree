@@ -5,6 +5,8 @@ use std::{
     str::FromStr,
 };
 
+use clap::{arg, command};
+
 pub(crate) const KILL_TREE_LOG_ENV_KEY: &str = "KILL_TREE_LOG";
 
 pub(crate) enum LogLevel {
@@ -46,4 +48,15 @@ fn parse_log_level_from_env() -> Result<LogLevel, Box<dyn Error>> {
 
 fn main() {
     println!("Hello, world!");
+    // let matches = command!()
+    //     .arg(
+    //         arg!("log-level")
+    //             .short('l')
+    //             .long("log-level")
+    //             .value_name("LEVEL")
+    //             .default_value("info")
+    //             .env(KILL_TREE_LOG_ENV_KEY)
+    //             .parse(|v| v.parse()),
+    //     )
+    //     .get_matches();
 }
