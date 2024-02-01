@@ -1,10 +1,20 @@
-use clap::{command, value_parser, Arg, ArgAction};
+use clap::{
+    builder::{styling::AnsiColor, Styles},
+    command, value_parser, Arg, ArgAction,
+};
 use kill_tree::{kill_tree_with_config, Config};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let matches = command!()
         .bin_name("kill-tree")
         .arg_required_else_help(true)
+        .styles(
+            Styles::styled()
+                .header(AnsiColor::BrightGreen.on_default().bold())
+                .usage(AnsiColor::BrightGreen.on_default().bold())
+                .literal(AnsiColor::BrightCyan.on_default().bold())
+                .placeholder(AnsiColor::Cyan.on_default()),
+        )
         .arg(
             Arg::new("PROCESS_ID")
                 .help("Process ID to kill with all children.")
