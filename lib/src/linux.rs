@@ -24,13 +24,11 @@ impl TreeKiller {
                         if status_path.exists() {
                             let status = fs::read_to_string(status_path)?;
                             let mut parent_process_id = None;
-                            // let mut name = None;
+                            let mut name = None;
                             for line in status.lines() {
-                                // if name and parent_process_id are both some then break
-
-                                // if parent_process_id is none then check if line starts with "PPid:"
-                                // if name is none then check if line starts with "Name:"
-
+                                if parent_process_id.is_some() && name.is_some() {
+                                    break;
+                                }
                                 if line.starts_with("PPid:") {
                                     if let Some(parent_process_id_str) =
                                         line.split_whitespace().nth(1)
@@ -41,16 +39,23 @@ impl TreeKiller {
                                             parent_process_id = Some(parent_process_id_value);
                                         }
                                     }
-                                    break;
+                                } else if line.starts_with("Name:") {
+                                    name =
+                                        Some(line.split_whitespace().nth(1).unwrap().to_string());
                                 }
                             }
-                            if let Some(parent_process_id) = parent_process_id {
-                                process_infos.push(ProcessInfo {
-                                    process_id,
-                                    parent_process_id,
-                                    name: "".to_string(),
-                                });
-                            }
+
+                            // if parent_process_id is None then assume it is 0
+                            let parent_process_id = parent_process_id.unwrap_or(0);
+
+                            // if name is None then assume it is "unknown"
+                            let name = name.unwrap_or_else(|| "unknown".to_string());
+
+                            process_infos.push(ProcessInfo {
+                                process_id,
+                                parent_process_id,
+                                name,
+                            });
                         }
                     }
                 }
