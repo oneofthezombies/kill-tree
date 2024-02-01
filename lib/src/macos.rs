@@ -1,16 +1,16 @@
 use nix::errno::Errno;
 
-use crate::common::{ProcessInfo, TreeKillable, TreeKiller};
+use crate::common::{ProcessInfo, TreeKiller};
 use std::{error::Error, ffi::c_void, io, ptr};
 
 const AVAILABLE_MAX_PROCESS_ID: u32 = 99999 - 1;
 
 impl TreeKiller {
-    fn validate_pid(&self) -> Result<(), Box<dyn Error>> {
+    pub(crate) fn validate_pid(&self) -> Result<(), Box<dyn Error>> {
         self.validate_pid_with_available_max(AVAILABLE_MAX_PROCESS_ID)
     }
 
-    fn get_process_infos(&self) -> Result<Vec<ProcessInfo>, Box<dyn Error>> {
+    pub(crate) fn get_process_infos(&self) -> Result<Vec<ProcessInfo>, Box<dyn Error>> {
         let buffer_size =
             unsafe { libproc::proc_listpids(libproc::PROC_ALL_PIDS, 0 as u32, ptr::null_mut(), 0) };
         if buffer_size <= 0 {
@@ -84,7 +84,7 @@ mod tests {
         assert!(result.is_err());
         assert_eq!(
             result.unwrap_err().to_string(),
-            "Process id is too large. process id: 4194305, available max process id: 4194304"
+            "Process id is too large. process id: 99999, available max process id: 99998"
         );
     }
 }
