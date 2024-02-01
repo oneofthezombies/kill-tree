@@ -47,6 +47,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     let mut config = Config::default();
     config.signal = signal.to_string();
-    kill_tree_with_config(process_id, config)?;
+    let process_ids = kill_tree_with_config(process_id, config)?;
+    if do_print {
+        println!("Killed processes: {:?}", process_ids);
+    }
     Ok(())
 }

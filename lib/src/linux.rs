@@ -15,6 +15,8 @@ impl TreeKiller {
         for entry in fs::read_dir("/proc")? {
             let entry = entry?;
             let path = entry.path();
+            // if path is not a directory then continue
+
             if path.is_dir() {
                 if let Some(file_name) = path.file_name().and_then(|s| s.to_str()) {
                     if let Ok(process_id) = file_name.parse::<u32>() {
@@ -22,7 +24,13 @@ impl TreeKiller {
                         if status_path.exists() {
                             let status = fs::read_to_string(status_path)?;
                             let mut parent_process_id = None;
+                            let mut name = None;
                             for line in status.lines() {
+                                // if name and parent_process_id are both some then break
+
+                                // if parent_process_id is none then check if line starts with "PPid:"
+                                // if name is none then check if line starts with "Name:"
+
                                 if line.starts_with("PPid:") {
                                     if let Some(parent_process_id_str) =
                                         line.split_whitespace().nth(1)

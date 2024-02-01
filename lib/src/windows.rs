@@ -1,5 +1,5 @@
 use crate::common::{ProcessInfo, TreeKillable, TreeKiller};
-use std::error::Error;
+use std::{error::Error, ffi};
 use windows::Win32::{
     Foundation::{CloseHandle, ERROR_NO_MORE_FILES, E_ACCESSDENIED},
     System::{
@@ -63,6 +63,15 @@ impl TreeKiller {
                 process_entry.dwSize = std::mem::size_of::<PROCESSENTRY32>() as u32;
                 match Process32First(snapshot_handle, &mut process_entry) {
                     Ok(_) => loop {
+                        let exe_file = ffi::CStr::from_ptr(process_entry.szExeFile.as_ptr() as _)
+                            .to_string_lossy()
+                            .into_owned();
+                        println!(
+                            "process id: {}, parent process id: {}, exe file: {}",
+                            process_entry.th32ProcessID,
+                            process_entry.th32ParentProcessID,
+                            exe_file
+                        );
                         process_infos.push(ProcessInfo {
                             process_id: process_entry.th32ProcessID,
                             parent_process_id: process_entry.th32ParentProcessID,
