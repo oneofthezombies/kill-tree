@@ -25,7 +25,7 @@ release: 1.75.0
 LLVM version: 17.0.6
 ```
 
-#### Build
+#### Local Build Command
 
 ```sh
 cargo build --target=x86_64-pc-windows-msvc
@@ -64,7 +64,7 @@ sudo apt install lld
 rustup target add x86_64-unknown-linux-musl
 ```
 
-#### Build
+#### Local Build Command
 
 ```sh
 cargo build --target=x86_64-unknown-linux-musl
@@ -111,7 +111,7 @@ after install
 echo 'export PATH="/opt/homebrew/opt/llvm/bin:$PATH"' >> ~/.zshrc
 ```
 
-#### Build
+#### Local Build Command
 
 ```sh
 cargo build --target=aarch64-apple-darwin
@@ -133,4 +133,30 @@ Please ensure `node` command.
 ```sh
 # node --version
 v20.11.0
+```
+
+# Deployment environment
+
+## Host Platform Architecture
+
+Macos Apple Silicon
+
+## Command
+
+```sh
+# Linux
+rustup target add x86_64-unknown-linux-musl
+cargo build --target=x86_64-unknown-linux-musl
+
+# Windows
+rustup target add x86_64-pc-windows-msvc
+cargo install cargo-xwin
+cargo xwin build --target x86_64-pc-windows-msvc
+
+# Macos
+rustup target add x86_64-apple-darwin
+rustup target add aarch64-apple-darwin
+cargo install cargo-zigbuild
+brew install zig
+cargo zigbuild --target universal2-apple-darwin
 ```
