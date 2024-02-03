@@ -3,6 +3,11 @@ fn main() {
     use std::env;
     use std::path::PathBuf;
 
+    let target = env::var("TARGET").unwrap();
+    if !target.contains("apple-darwin") {
+        return;
+    }
+
     // The bindgen::Builder is the main entry point
     // to bindgen, and lets you build up options for
     // the resulting bindings.

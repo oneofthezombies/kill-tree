@@ -146,6 +146,7 @@ Macos Apple Silicon
 ```sh
 # Linux
 rustup target add x86_64-unknown-linux-musl
+brew install filosottile/musl-cross/musl-cross
 cargo build --target=x86_64-unknown-linux-musl
 
 # Windows
@@ -158,5 +159,5 @@ rustup target add x86_64-apple-darwin
 rustup target add aarch64-apple-darwin
 cargo install cargo-zigbuild
 brew install zig
-cargo zigbuild --target universal2-apple-darwin
+cd cli && cargo zigbuild --target universal2-apple-darwin
 ```
