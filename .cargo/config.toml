@@ -1,2 +1,5 @@
-[target.'cfg(all(windows, target_env = "msvc"))']
-rustflags = ["-C", "target-feature=+crt-static"]
+[build]
+rustflags = ["-C", "link-arg=-fuse-ld=lld"]
+
+[target.'cfg(windows)']
+rustflags = ["-C", "link-arg=-fuse-ld=lld", "target-feature=+crt-static"]

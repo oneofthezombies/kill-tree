@@ -51,6 +51,19 @@ release: 1.75.0
 LLVM version: 17.0.6
 ```
 
+#### Requirements
+
+```sh
+sudo apt install lld
+rustup target add x86_64-unknown-linux-musl
+```
+
+#### Build
+
+```sh
+cargo build --target=x86_64-unknown-linux-musl
+```
+
 ### Macos
 
 #### Host Information
