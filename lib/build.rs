@@ -9,12 +9,16 @@ fn main() {
     let bindings = bindgen::Builder::default()
         // The input header we would like to generate
         // bindings for.
-        .header_contents("libproc_wrapper.h", "#include <libproc.h>",
-        )
+        .header_contents("libproc_wrapper.h", "#include <libproc.h>")
         // Tell cargo to invalidate the built crate whenever any of the
         // included header files changed.
         .parse_callbacks(Box::new(bindgen::CargoCallbacks::new()))
-        .clang_args(&["-x", "c++", "-I", "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include"])
+        .clang_args(&[
+            "-x",
+            "c++",
+            "-I",
+            "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include",
+        ])
         // Finish the builder and generate the bindings.
         .generate()
         // Unwrap the Result and panic on failure.

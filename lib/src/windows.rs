@@ -1,7 +1,4 @@
-use crate::common::{
-    KillResult, KillResults, KilledInfo, MaybeAlreadyTerminatedInfo, ProcessId, ProcessInfo,
-    TreeKillable, TreeKiller,
-};
+use crate::common::{KillResults, ProcessId, ProcessInfo, TreeKillable, TreeKiller};
 use std::{error::Error, ffi};
 use windows::Win32::{
     Foundation::{CloseHandle, ERROR_NO_MORE_FILES, E_ACCESSDENIED, E_INVALIDARG},
@@ -35,7 +32,7 @@ impl TreeKillable for TreeKiller {
 }
 
 impl TreeKiller {
-    fn validate_pid(&self) -> Result<(), Box<dyn Error>> {
+    pub(crate) fn validate_pid(&self) -> Result<(), Box<dyn Error>> {
         match self.process_id {
             SYSTEM_IDLE_PROCESS_PROCESS_ID => Err(format!(
                 "Not allowed to kill System Idle Process. process id: {}",
@@ -51,7 +48,7 @@ impl TreeKiller {
         }
     }
 
-    fn get_process_infos(&self) -> Result<Vec<ProcessInfo>, Box<dyn Error>> {
+    pub(crate) fn get_process_infos(&self) -> Result<Vec<ProcessInfo>, Box<dyn Error>> {
         let mut process_infos = Vec::new();
         let mut error = None;
         unsafe {
