@@ -99,6 +99,24 @@ release: 1.75.0
 LLVM version: 17.0.6
 ```
 
+#### Requirements
+
+```sh
+brew install llvm
+```
+
+after install
+
+```sh
+echo 'export PATH="/opt/homebrew/opt/llvm/bin:$PATH"' >> ~/.zshrc
+```
+
+#### Build
+
+```sh
+cargo build --target=aarch64-apple-darwin
+```
+
 # Test environment
 
 ## Requirements

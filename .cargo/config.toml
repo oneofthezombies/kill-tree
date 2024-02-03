@@ -1,5 +1,2 @@
 [build]
-rustflags = ["-C", "link-arg=-fuse-ld=lld"]
-
-[target.'cfg(windows)']
 rustflags = ["-C", "link-arg=-fuse-ld=lld", "-C", "target-feature=+crt-static"]
