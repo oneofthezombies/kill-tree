@@ -25,6 +25,12 @@ release: 1.75.0
 LLVM version: 17.0.6
 ```
 
+#### Build
+
+```sh
+cargo build --target=x86_64-pc-windows-msvc
+```
+
 ### Linux
 
 #### Host Information
