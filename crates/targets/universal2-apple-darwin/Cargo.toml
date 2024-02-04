@@ -1,5 +1,0 @@
-[package]
-name = "targets-universal2-apple-darwin"
-version = "0.0.0"
-edition = "2021"
-publish = false
