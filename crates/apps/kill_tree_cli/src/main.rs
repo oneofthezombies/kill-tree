@@ -51,7 +51,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         process_id,
         Config {
             signal: signal.to_string(),
-            ..Default::default()
         },
     )?;
 
