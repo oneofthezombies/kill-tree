@@ -43,7 +43,7 @@ mod tests {
     #[test]
     fn hello_world() {
         let process = Command::new("node")
-            .arg("../tests/resources/hello_world.mjs")
+            .arg("../../tests/resources/hello_world.mjs")
             .spawn()
             .unwrap();
         let process_id = process.id();
@@ -61,7 +61,7 @@ mod tests {
     #[test]
     fn hello_world_with_sigkill() {
         let process = Command::new("node")
-            .arg("../tests/resources/hello_world.mjs")
+            .arg("../../tests/resources/hello_world.mjs")
             .spawn()
             .unwrap();
         let process_id = process.id();
@@ -85,7 +85,7 @@ mod tests {
     #[test]
     fn hello_world_with_sigterm() {
         let process = Command::new("node")
-            .arg("../tests/resources/hello_world.mjs")
+            .arg("../../tests/resources/hello_world.mjs")
             .spawn()
             .unwrap();
         let process_id = process.id();
@@ -109,7 +109,7 @@ mod tests {
     #[test]
     fn hello_world_with_sigint() {
         let process = Command::new("node")
-            .arg("../tests/resources/hello_world.mjs")
+            .arg("../../tests/resources/hello_world.mjs")
             .spawn()
             .unwrap();
         let process_id = process.id();
@@ -133,7 +133,7 @@ mod tests {
     #[test]
     fn hello_world_with_sigquit() {
         let process = Command::new("node")
-            .arg("../tests/resources/hello_world.mjs")
+            .arg("../../tests/resources/hello_world.mjs")
             .spawn()
             .unwrap();
         let process_id = process.id();
@@ -157,7 +157,7 @@ mod tests {
     #[test]
     fn sleep() {
         let process = Command::new("node")
-            .arg("../tests/resources/sleep.mjs")
+            .arg("../../tests/resources/sleep.mjs")
             .spawn()
             .unwrap();
         let process_id = process.id();
@@ -178,7 +178,7 @@ mod tests {
             .stdin(Stdio::null())
             .stdout(Stdio::null())
             .stderr(Stdio::null())
-            .arg("../tests/resources/hello_world.mjs")
+            .arg("../../tests/resources/hello_world.mjs")
             .spawn()
             .unwrap();
         let process_id = process.id();
@@ -197,7 +197,7 @@ mod tests {
     #[test]
     fn child() {
         let process = Command::new("node")
-            .arg("../tests/resources/child/target.mjs")
+            .arg("../../tests/resources/child/target.mjs")
             .spawn()
             .unwrap();
         let process_id = process.id();
@@ -210,7 +210,7 @@ mod tests {
     #[test]
     fn grandchild() {
         let process = Command::new("node")
-            .arg("../tests/resources/grandchild/target.mjs")
+            .arg("../../tests/resources/grandchild/target.mjs")
             .spawn()
             .unwrap();
         let process_id = process.id();
@@ -223,7 +223,7 @@ mod tests {
     #[test]
     fn children() {
         let process = Command::new("node")
-            .arg("../tests/resources/children/target.mjs")
+            .arg("../../tests/resources/children/target.mjs")
             .spawn()
             .unwrap();
         let process_id = process.id();
@@ -236,7 +236,7 @@ mod tests {
     #[test]
     fn grandchildren() {
         let process = Command::new("node")
-            .arg("../tests/resources/grandchildren/target.mjs")
+            .arg("../../tests/resources/grandchildren/target.mjs")
             .spawn()
             .unwrap();
         let process_id = process.id();
