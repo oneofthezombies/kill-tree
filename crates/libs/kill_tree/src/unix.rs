@@ -106,7 +106,7 @@ mod tests {
     #[test]
     fn hello_world_with_invalid_signal() {
         let process = Command::new("node")
-            .arg("../../tests/resources/hello_world.mjs")
+            .arg("../../../tests/resources/hello_world.mjs")
             .spawn()
             .unwrap();
         let process_id = process.id();
