@@ -1,7 +1,7 @@
 [workspace]
 members = [
     "crates/libs/*",
-    "crates/commands/*",
+    "crates/apps/*",
     "crates/targets/*",
     "crates/tools/*",
 ]
