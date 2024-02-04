@@ -8,10 +8,3 @@ edition = "2021"
 authors = ["oneofthezombies"]
 repository = "https://github.com/oneofthezombies/kill-tree"
 license = "MIT"
-
-[workspace.dependencies]
-cargo-husky = { version = "1", features = [
-    "run-cargo-check",
-    "run-cargo-clippy",
-    "run-cargo-fmt",
-] }

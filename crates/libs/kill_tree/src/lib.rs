@@ -42,7 +42,6 @@ mod tests {
 
     #[test]
     fn hello_world() {
-        println!("Hello, world!");
         let process = Command::new("node")
             .arg("../../../tests/resources/hello_world.mjs")
             .spawn()

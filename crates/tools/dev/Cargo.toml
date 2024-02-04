@@ -2,3 +2,10 @@
 name = "tool-dev"
 version = "0.0.0"
 edition.workspace = true
+
+[dev-dependencies]
+cargo-husky = { version = "1", features = [
+    "run-cargo-check",
+    "run-cargo-clippy",
+    "run-cargo-fmt",
+] }
