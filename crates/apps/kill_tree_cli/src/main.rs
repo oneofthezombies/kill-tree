@@ -4,8 +4,29 @@ use clap::{
 };
 use kill_tree::{kill_tree_with_config, Config, KillResult};
 
+fn get_styles() -> Styles {
+    Styles::styled()
+        .header(AnsiColor::BrightGreen.on_default().bold())
+        .usage(AnsiColor::BrightGreen.on_default().bold())
+        .literal(AnsiColor::BrightCyan.on_default().bold())
+        .placeholder(AnsiColor::Cyan.on_default())
+}
+
 #[derive(Parser)]
-struct Cli {}
+#[command(name = "kill-tree")]
+#[command(bin_name = "kill-tree")]
+#[command(arg_required_else_help = true)]
+#[command(author, version, about, long_about=None, styles=get_styles())]
+struct Cli {
+    #[arg(help="Process ID to kill with all children.", value_parser(value_parser!(u32)))]
+    process_id: u32,
+
+    #[arg(help = "Signal to send to the processes.", default_value = "SIGTERM")]
+    signal: String,
+
+    #[arg(short, long, help = "No logs are output.")]
+    quiet: bool,
+}
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let matches = command!()
