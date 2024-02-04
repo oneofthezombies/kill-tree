@@ -92,7 +92,7 @@ impl TreeKiller {
             }
             let children = process_id_map
                 .entry(process_info.parent_process_id)
-                .or_insert_with(Vec::new);
+                .or_default();
             children.push(process_info.process_id);
         }
         for (_, children) in process_id_map.iter_mut() {
