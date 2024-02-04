@@ -10,4 +10,8 @@ repository = "https://github.com/oneofthezombies/kill-tree"
 license = "MIT"
 
 [workspace.dependencies]
-cargo-husky = "1"
+cargo-husky = { version = "1", features = [
+    "run-cargo-check",
+    "run-cargo-clippy",
+    "run-cargo-fmt",
+] }
