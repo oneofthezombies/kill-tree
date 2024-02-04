@@ -1,0 +1,5 @@
+[package]
+name = "targets-aarch64-unknown-linux-musl"
+version = "0.0.0"
+edition = "2021"
+publish = false

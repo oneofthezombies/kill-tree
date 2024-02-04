@@ -1,0 +1,5 @@
+[package]
+name = "targets-x86_64-pc-windows-msvc"
+version = "0.0.0"
+edition = "2021"
+publish = false

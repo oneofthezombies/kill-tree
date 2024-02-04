@@ -9,7 +9,6 @@ categories = ["system", "process"]
 license = "MIT"
 readme = "README.md"
 keywords = ["process", "kill", "tree-kill", "kill-tree"]
-workspace = "../"
 
 [target.'cfg(windows)'.dependencies]
 windows = { version = "0.52.0", features = [
