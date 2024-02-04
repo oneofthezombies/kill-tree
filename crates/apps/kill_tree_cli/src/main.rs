@@ -1,8 +1,11 @@
 use clap::{
     builder::{styling::AnsiColor, Styles},
-    command, value_parser, Arg, ArgAction,
+    command, value_parser, Arg, ArgAction, Parser,
 };
 use kill_tree::{kill_tree_with_config, Config, KillResult};
+
+#[derive(Parser)]
+struct Cli {}
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let matches = command!()
