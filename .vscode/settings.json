@@ -1,5 +1,10 @@
 {
   "rust-analyzer.showUnlinkedFileNotification": false,
+  "rust-analyzer.runnables.extraEnv": [
+    {
+      "env": {}
+    }
+  ],
   "[rust]": {
     "editor.defaultFormatter": "rust-lang.rust-analyzer",
     "editor.formatOnSave": true

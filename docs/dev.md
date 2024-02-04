@@ -144,6 +144,9 @@ Macos Apple Silicon
 ## Command
 
 ```sh
+# Common
+RUSTFLAGS="-C target-feature=+crt-static"
+
 # Linux
 rustup target add x86_64-unknown-linux-musl
 brew install filosottile/musl-cross/musl-cross
