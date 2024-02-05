@@ -1,6 +1,6 @@
 [package]
 name = "kill_tree_cli"
-description = "CLI tool that kill the process also with all child processes."
+description = "A CLI tool that kills all of target process and child processes recursively not depending on the other commands."
 version.workspace = true
 edition.workspace = true
 authors.workspace = true

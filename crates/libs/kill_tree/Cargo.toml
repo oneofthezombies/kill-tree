@@ -1,8 +1,8 @@
 [package]
 name = "kill_tree"
-description = "Multi-platform library that kill the process also with all child processes."
-categories = ["system", "process"]
-keywords = ["process", "kill", "tree-kill", "kill-tree"]
+description = "A library that kills all of target process and child processes recursively not depending on the other commands."
+categories = ["system", "process", "kill"]
+keywords = ["process", "tree-kill", "kill", "ps", "pgrep", "taskkill", "wmic"]
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
