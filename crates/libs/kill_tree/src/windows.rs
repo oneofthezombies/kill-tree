@@ -31,7 +31,7 @@ fn kill(process_id: ProcessId) -> common::Result<single::Output> {
                     result = TerminateProcess(process_handle, 1)
                         .and(Ok(single::Output::Killed { process_id }))
                         .or_else(|e| {
-                            if e.code() == E_ACCESSDENIED.into() {
+                            if e.code() == E_ACCESSDENIED {
                                 // Access is denied.
                                 // This happens when the process is already terminated.
                                 // This treat as success.
@@ -47,7 +47,7 @@ fn kill(process_id: ProcessId) -> common::Result<single::Output> {
                 CloseHandle(process_handle)?;
             }
             Err(e) => {
-                if e.code() == E_INVALIDARG.into() {
+                if e.code() == E_INVALIDARG {
                     // The parameter is incorrect.
                     // This happens when the process is already terminated.
                     // This treat as success.
@@ -73,7 +73,7 @@ impl Impl {
                 // this process is System Idle Process
                 process_info.parent_process_id == process_info.process_id
             },
-            |process_id| kill(process_id),
+            kill,
         )
         .await
     }
