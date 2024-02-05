@@ -38,7 +38,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let do_print = !cli.quiet;
     if do_print {
         println!(
-            "Killing process with all children. process id: {}, signal: {}",
+            "Killing all of target process and its children recursively. process id: {}, signal: {}",
             cli.process_id, cli.signal
         );
     }
