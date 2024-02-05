@@ -33,7 +33,8 @@ struct Cli {
     quiet: bool,
 }
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
     let do_print = !cli.quiet;
     if do_print {
