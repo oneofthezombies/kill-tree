@@ -19,12 +19,10 @@ fn get_styles() -> Styles {
 #[command(styles = get_styles())]
 #[command(author, version, about, long_about=None)]
 struct Cli {
-    #[arg(name = "PROCESS_ID")]
     #[arg(help = "Process ID to kill with all children.")]
     #[arg(value_parser = value_parser!(u32))]
     process_id: u32,
 
-    #[arg(name = "SIGNAL")]
     #[arg(help = "Signal to send to the processes.")]
     #[arg(default_value = "SIGTERM")]
     signal: String,
