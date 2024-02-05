@@ -1,5 +1,8 @@
-use crate::common::{KillResults, ProcessId, ProcessInfo, TreeKillable, TreeKiller};
-use std::{error::Error, ffi};
+use crate::{
+    common::{self, single, Impl, ProcessId, ProcessInfo, ProcessInfos},
+    tree,
+};
+use std::ffi;
 use windows::Win32::{
     Foundation::{CloseHandle, ERROR_NO_MORE_FILES, E_ACCESSDENIED, E_INVALIDARG},
     System::{
@@ -17,22 +20,65 @@ const SYSTEM_IDLE_PROCESS_PROCESS_ID: u32 = 0;
 /// process id of System
 const SYSTEM_PROCESS_ID: u32 = 4;
 
-impl TreeKillable for TreeKiller {
-    fn kill_tree(&self) -> Result<KillResults, Box<dyn Error>> {
-        // self.config is not used on Windows platform yet
-        let _ = self.config;
+fn kill(process_id: ProcessId) -> common::Result<single::Output> {
+    let result;
+    unsafe {
+        let open_result = OpenProcess(PROCESS_TERMINATE, false, process_id);
+        match open_result {
+            Ok(process_handle) => {
+                {
+                    // do NOT return early from this block
+                    result = TerminateProcess(process_handle, 1)
+                        .and(Ok(single::Output::Killed { process_id }))
+                        .or_else(|e| {
+                            if e.code() == E_ACCESSDENIED.into() {
+                                // Access is denied.
+                                // This happens when the process is already terminated.
+                                // This treat as success.
+                                Ok(single::Output::MaybeAlreadyTerminated {
+                                    process_id,
+                                    reason: e.into(),
+                                })
+                            } else {
+                                Err(e.into())
+                            }
+                        })
+                }
+                CloseHandle(process_handle)?;
+            }
+            Err(e) => {
+                if e.code() == E_INVALIDARG.into() {
+                    // The parameter is incorrect.
+                    // This happens when the process is already terminated.
+                    // This treat as success.
+                    result = Ok(single::Output::MaybeAlreadyTerminated {
+                        process_id,
+                        reason: e.into(),
+                    });
+                } else {
+                    result = Err(e.into());
+                }
+            }
+        }
+    }
+    result
+}
+
+impl Impl {
+    pub(crate) async fn kill_tree(&self) -> common::Result<tree::Outputs> {
+        // self.signal is not used on Windows platform yet
+        let _ = self.signal;
         self.kill_tree_impl(
             |process_info| {
                 // this process is System Idle Process
                 process_info.parent_process_id == process_info.process_id
             },
-            |process_id| self.kill(process_id),
+            |process_id| kill(process_id),
         )
+        .await
     }
-}
 
-impl TreeKiller {
-    pub(crate) fn validate_pid(&self) -> Result<(), Box<dyn Error>> {
+    pub(crate) fn validate_process_id(&self) -> common::Result<()> {
         match self.process_id {
             SYSTEM_IDLE_PROCESS_PROCESS_ID => Err(format!(
                 "Not allowed to kill System Idle Process. process id: {}",
@@ -48,7 +94,7 @@ impl TreeKiller {
         }
     }
 
-    pub(crate) fn get_process_infos(&self) -> Result<Vec<ProcessInfo>, Box<dyn Error>> {
+    pub(crate) async fn get_process_infos(&self) -> common::Result<ProcessInfos> {
         let mut process_infos = Vec::new();
         let mut error = None;
         unsafe {
@@ -89,53 +135,15 @@ impl TreeKiller {
             Ok(process_infos)
         }
     }
-
-    fn kill(&self, process_id: ProcessId) -> Result<Option<Box<dyn Error>>, Box<dyn Error>> {
-        let result;
-        unsafe {
-            let open_result = OpenProcess(PROCESS_TERMINATE, false, process_id);
-            match open_result {
-                Ok(process_handle) => {
-                    {
-                        // do NOT return early from this block
-                        result = TerminateProcess(process_handle, 1)
-                            .and(Ok(None))
-                            .or_else(|e| {
-                                if e.code() == E_ACCESSDENIED.into() {
-                                    // Access is denied.
-                                    // This happens when the process is already terminated.
-                                    // This is not an error.
-                                    Ok(Some(e.into()))
-                                } else {
-                                    Err(e.into())
-                                }
-                            })
-                    }
-                    CloseHandle(process_handle)?;
-                }
-                Err(e) => {
-                    if e.code() == E_INVALIDARG.into() {
-                        // The parameter is incorrect.
-                        // This happens when the process is already terminated.
-                        // This is not an error.
-                        result = Ok(Some(e.into()));
-                    } else {
-                        result = Err(e.into());
-                    }
-                }
-            }
-        }
-        result
-    }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{common::Config, kill_tree_with_config};
+    use crate::kill_tree;
 
-    #[test]
-    fn process_id_0() {
-        let result = kill_tree_with_config(0, Config::default());
+    #[tokio::test]
+    async fn process_id_0() {
+        let result = kill_tree(0).await;
         assert!(result.is_err());
         assert_eq!(
             result.unwrap_err().to_string(),
@@ -143,9 +151,9 @@ mod tests {
         );
     }
 
-    #[test]
-    fn process_id_4() {
-        let result = kill_tree_with_config(4, Config::default());
+    #[tokio::test]
+    async fn process_id_4() {
+        let result = kill_tree(4).await;
         assert!(result.is_err());
         assert_eq!(
             result.unwrap_err().to_string(),
