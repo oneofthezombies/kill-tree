@@ -2,7 +2,7 @@ use clap::{
     builder::{styling::AnsiColor, Styles},
     command, value_parser, ArgAction, Parser,
 };
-use kill_tree::{kill_tree_with_config, Config, KillResult};
+use kill_tree::kill_tree_with_signal;
 
 fn get_styles() -> Styles {
     Styles::styled()
@@ -44,39 +44,39 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         );
     }
 
-    let kill_results = kill_tree_with_config(
-        cli.process_id,
-        Config {
-            signal: cli.signal.to_string(),
-        },
-    )?;
+    let outputs = match kill_tree_with_signal(cli.process_id, cli.signal.as_str()).await {
+        Ok(x) => x,
+        Err(e) => {
+            if do_print {
+                println!("Failed to kill processes. error: {}", e);
+            }
+            let e: Box<dyn std::error::Error> = e;
+            return Err(e);
+        }
+    };
 
     if do_print {
         println!(
             "Killing is done. Number of killed processes: {}",
-            kill_results.len()
+            outputs.len()
         );
-        for (index, kill_result) in kill_results.iter().enumerate() {
-            match kill_result {
-                KillResult::Killed(killed_info) => {
+        for (index, output) in outputs.iter().enumerate() {
+            match output {
+                kill_tree::tree::Output::Killed {
+                    process_id,
+                    parent_process_id,
+                    name,
+                } => {
                     println!(
                         "[{}] Killed process. process id: {}, parent process id: {}, name: {}",
-                        index,
-                        killed_info.process_id,
-                        killed_info.parent_process_id,
-                        killed_info.name
+                        index, process_id, parent_process_id, name
                     );
                 }
-                KillResult::MaybeAlreadyTerminated(maybe_already_terminated_info) => {
+                kill_tree::tree::Output::MaybeAlreadyTerminated { process_id, reason } => {
                     println!(
                         "[{}] Maybe already terminated process. process id: {}, reason: {}",
-                        index,
-                        maybe_already_terminated_info.process_id,
-                        maybe_already_terminated_info.reason
+                        index, process_id, reason
                     );
-                }
-                KillResult::InternalError(e) => {
-                    println!("[{}] Internal error occurred. error: {}", index, e);
                 }
             }
         }

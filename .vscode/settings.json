@@ -1,5 +1,6 @@
 {
   "rust-analyzer.showUnlinkedFileNotification": false,
+  "rust-analyzer.semanticHighlighting.punctuation.enable": true,
   "rust-analyzer.runnables.extraEnv": [
     {
       "env": {}

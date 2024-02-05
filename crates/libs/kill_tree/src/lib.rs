@@ -1,3 +1,6 @@
+use common::Impl;
+pub use common::{tree, ProcessId};
+
 mod common;
 #[cfg(target_os = "linux")]
 mod linux;
@@ -8,26 +11,23 @@ mod unix;
 #[cfg(windows)]
 mod windows;
 
-pub use common::{
-    Config, KillResult, KillResults, KilledInfo, MaybeAlreadyTerminatedInfo, ParentProcessId,
-    ProcessId,
-};
-use common::{TreeKillable, TreeKiller};
-use std::error::Error;
-
-/// Kills the process and its children.
-/// Returns process ids that were killed or already terminated.
-pub fn kill_tree_with_config(
-    process_id: u32,
-    config: Config,
-) -> Result<KillResults, Box<dyn Error>> {
-    TreeKiller::new(process_id, config).kill_tree()
+/// Kills all of target process and its children recursively with the given signal.
+/// Signal value is ignored on Windows.
+pub async fn kill_tree_with_signal(
+    process_id: ProcessId,
+    signal: &str,
+) -> common::Result<tree::Outputs> {
+    Impl {
+        process_id,
+        signal: signal.to_owned(),
+    }
+    .kill_tree()
+    .await
 }
 
-/// Kills the process and its children.
-/// Returns process ids that were killed or already terminated.
-pub fn kill_tree(process_id: u32) -> Result<KillResults, Box<dyn Error>> {
-    kill_tree_with_config(process_id, Config::default())
+/// Kills all of target process and its children recursively with SIGTERM signal.
+pub async fn kill_tree(process_id: ProcessId) -> common::Result<tree::Outputs> {
+    kill_tree_with_signal(process_id, "SIGTERM").await
 }
 
 #[cfg(test)]
@@ -40,140 +40,146 @@ mod tests {
         time::Duration,
     };
 
-    #[test]
-    fn hello_world() {
+    #[tokio::test]
+    async fn hello_world() {
         let process = Command::new("node")
             .arg("../../../tests/resources/hello_world.mjs")
             .spawn()
             .unwrap();
-        let process_id = process.id();
-        let result = kill_tree_with_config(process_id, Config::default());
+        let target_process_id = process.id();
+        let result = kill_tree(target_process_id).await;
         assert!(result.is_ok());
-        let kill_results = result.unwrap();
-        let kill_result = kill_results.index(0);
-        if let KillResult::Killed(killed_info) = kill_result {
-            assert_eq!(killed_info.process_id, process_id);
-        } else {
-            panic!("Unexpected result: {:?}", kill_result);
-        }
-    }
-
-    #[test]
-    fn hello_world_with_sigkill() {
-        let process = Command::new("node")
-            .arg("../../../tests/resources/hello_world.mjs")
-            .spawn()
-            .unwrap();
-        let process_id = process.id();
-        let result = kill_tree_with_config(
+        let outputs = result.unwrap();
+        let output = outputs.index(0);
+        if let tree::Output::Killed {
             process_id,
-            Config {
-                signal: "SIGKILL".to_string(),
-                ..Default::default()
-            },
-        );
-        assert!(result.is_ok());
-        let kill_results = result.unwrap();
-        let kill_result = kill_results.index(0);
-        if let KillResult::Killed(killed_info) = kill_result {
-            assert_eq!(killed_info.process_id, process_id);
+            parent_process_id: _,
+            name: _,
+        } = output
+        {
+            assert_eq!(*process_id, target_process_id);
         } else {
-            panic!("Unexpected result: {:?}", kill_result);
+            panic!("Unexpected output: {:?}", output);
         }
     }
 
-    #[test]
-    fn hello_world_with_sigterm() {
+    #[tokio::test]
+    async fn hello_world_with_sigkill() {
         let process = Command::new("node")
             .arg("../../../tests/resources/hello_world.mjs")
             .spawn()
             .unwrap();
-        let process_id = process.id();
-        let result = kill_tree_with_config(
-            process_id,
-            Config {
-                signal: "SIGTERM".to_string(),
-                ..Default::default()
-            },
-        );
+        let target_process_id = process.id();
+        let result = kill_tree_with_signal(target_process_id, "SIGKILL").await;
         assert!(result.is_ok());
-        let kill_results = result.unwrap();
-        let kill_result = kill_results.index(0);
-        if let KillResult::Killed(killed_info) = kill_result {
-            assert_eq!(killed_info.process_id, process_id);
+        let outputs = result.unwrap();
+        let output = outputs.index(0);
+        if let tree::Output::Killed {
+            process_id,
+            parent_process_id: _,
+            name: _,
+        } = output
+        {
+            assert_eq!(*process_id, target_process_id);
         } else {
-            panic!("Unexpected result: {:?}", kill_result);
+            panic!("Unexpected output: {:?}", output);
         }
     }
 
-    #[test]
-    fn hello_world_with_sigint() {
+    #[tokio::test]
+    async fn hello_world_with_sigterm() {
         let process = Command::new("node")
             .arg("../../../tests/resources/hello_world.mjs")
             .spawn()
             .unwrap();
-        let process_id = process.id();
-        let result = kill_tree_with_config(
-            process_id,
-            Config {
-                signal: "SIGINT".to_string(),
-                ..Default::default()
-            },
-        );
+        let target_process_id = process.id();
+        let result = kill_tree_with_signal(target_process_id, "SIGTERM").await;
         assert!(result.is_ok());
-        let kill_results = result.unwrap();
-        let kill_result = kill_results.index(0);
-        if let KillResult::Killed(killed_info) = kill_result {
-            assert_eq!(killed_info.process_id, process_id);
+        let outputs = result.unwrap();
+        let output = outputs.index(0);
+        if let tree::Output::Killed {
+            process_id,
+            parent_process_id: _,
+            name: _,
+        } = output
+        {
+            assert_eq!(*process_id, target_process_id);
         } else {
-            panic!("Unexpected result: {:?}", kill_result);
+            panic!("Unexpected output: {:?}", output);
         }
     }
 
-    #[test]
-    fn hello_world_with_sigquit() {
+    #[tokio::test]
+    async fn hello_world_with_sigint() {
         let process = Command::new("node")
             .arg("../../../tests/resources/hello_world.mjs")
             .spawn()
             .unwrap();
-        let process_id = process.id();
-        let result = kill_tree_with_config(
-            process_id,
-            Config {
-                signal: "SIGQUIT".to_string(),
-                ..Default::default()
-            },
-        );
+        let target_process_id = process.id();
+        let result = kill_tree_with_signal(target_process_id, "SIGINT").await;
         assert!(result.is_ok());
-        let kill_results = result.unwrap();
-        let kill_result = kill_results.index(0);
-        if let KillResult::Killed(killed_info) = kill_result {
-            assert_eq!(killed_info.process_id, process_id);
+        let outputs = result.unwrap();
+        let output = outputs.index(0);
+        if let tree::Output::Killed {
+            process_id,
+            parent_process_id: _,
+            name: _,
+        } = output
+        {
+            assert_eq!(*process_id, target_process_id);
         } else {
-            panic!("Unexpected result: {:?}", kill_result);
+            panic!("Unexpected output: {:?}", output);
         }
     }
 
-    #[test]
-    fn sleep() {
+    #[tokio::test]
+    async fn hello_world_with_sigquit() {
+        let process = Command::new("node")
+            .arg("../../../tests/resources/hello_world.mjs")
+            .spawn()
+            .unwrap();
+        let target_process_id = process.id();
+        let result = kill_tree_with_signal(target_process_id, "SIGQUIT").await;
+        assert!(result.is_ok());
+        let outputs = result.unwrap();
+        let output = outputs.index(0);
+        if let tree::Output::Killed {
+            process_id,
+            parent_process_id: _,
+            name: _,
+        } = output
+        {
+            assert_eq!(*process_id, target_process_id);
+        } else {
+            panic!("Unexpected output: {:?}", output);
+        }
+    }
+
+    #[tokio::test]
+    async fn sleep() {
         let process = Command::new("node")
             .arg("../../../tests/resources/sleep.mjs")
             .spawn()
             .unwrap();
-        let process_id = process.id();
-        let result = kill_tree_with_config(process_id, Config::default());
+        let target_process_id = process.id();
+        let result = kill_tree(target_process_id).await;
         assert!(result.is_ok());
-        let kill_results = result.unwrap();
-        let kill_result = kill_results.index(0);
-        if let KillResult::Killed(killed_info) = kill_result {
-            assert_eq!(killed_info.process_id, process_id);
+        let outputs = result.unwrap();
+        let output = outputs.index(0);
+        if let tree::Output::Killed {
+            process_id,
+            parent_process_id: _,
+            name: _,
+        } = output
+        {
+            assert_eq!(*process_id, target_process_id);
         } else {
-            panic!("Unexpected result: {:?}", kill_result);
+            panic!("Unexpected output: {:?}", output);
         }
     }
 
-    #[test]
-    fn hello_world_wait_after() {
+    #[tokio::test]
+    async fn hello_world_wait_after() {
         let mut process = Command::new("node")
             .stdin(Stdio::null())
             .stdout(Stdio::null())
@@ -181,67 +187,71 @@ mod tests {
             .arg("../../../tests/resources/hello_world.mjs")
             .spawn()
             .unwrap();
-        let process_id = process.id();
+        let target_process_id = process.id();
         process.wait().unwrap();
-        let result = kill_tree_with_config(process_id, Config::default());
+        let result = kill_tree(target_process_id).await;
         assert!(result.is_ok());
-        let kill_results = result.unwrap();
-        let kill_result = kill_results.index(0);
-        if let KillResult::MaybeAlreadyTerminated(maybe_already_terminated_info) = kill_result {
-            assert_eq!(maybe_already_terminated_info.process_id, process_id);
+        let outputs = result.unwrap();
+        let output = outputs.index(0);
+        if let tree::Output::MaybeAlreadyTerminated {
+            process_id,
+            reason: _,
+        } = output
+        {
+            assert_eq!(*process_id, target_process_id);
         } else {
-            panic!("Unexpected result: {:?}", kill_result);
+            panic!("Unexpected output: {:?}", output);
         }
     }
 
-    #[test]
-    fn child() {
+    #[tokio::test]
+    async fn child() {
         let process = Command::new("node")
             .arg("../../../tests/resources/child/target.mjs")
             .spawn()
             .unwrap();
-        let process_id = process.id();
+        let target_process_id = process.id();
         thread::sleep(Duration::from_secs(1));
-        let result = kill_tree_with_config(process_id, Config::default());
+        let result = kill_tree(target_process_id).await;
         assert!(result.is_ok());
         assert_eq!(result.unwrap().len(), 2);
     }
 
-    #[test]
-    fn grandchild() {
+    #[tokio::test]
+    async fn grandchild() {
         let process = Command::new("node")
             .arg("../../../tests/resources/grandchild/target.mjs")
             .spawn()
             .unwrap();
-        let process_id = process.id();
+        let target_process_id = process.id();
         thread::sleep(Duration::from_secs(1));
-        let result = kill_tree_with_config(process_id, Config::default());
+        let result = kill_tree(target_process_id).await;
         assert!(result.is_ok());
         assert_eq!(result.unwrap().len(), 3);
     }
 
-    #[test]
-    fn children() {
+    #[tokio::test]
+    async fn children() {
         let process = Command::new("node")
             .arg("../../../tests/resources/children/target.mjs")
             .spawn()
             .unwrap();
-        let process_id = process.id();
+        let target_process_id = process.id();
         thread::sleep(Duration::from_secs(1));
-        let result = kill_tree_with_config(process_id, Config::default());
+        let result = kill_tree(target_process_id).await;
         assert!(result.is_ok());
         assert_eq!(result.unwrap().len(), 3);
     }
 
-    #[test]
-    fn grandchildren() {
+    #[tokio::test]
+    async fn grandchildren() {
         let process = Command::new("node")
             .arg("../../../tests/resources/grandchildren/target.mjs")
             .spawn()
             .unwrap();
-        let process_id = process.id();
+        let target_process_id = process.id();
         thread::sleep(Duration::from_secs(1));
-        let result = kill_tree_with_config(process_id, Config::default());
+        let result = kill_tree(target_process_id).await;
         assert!(result.is_ok());
         assert_eq!(result.unwrap().len(), 5);
     }
