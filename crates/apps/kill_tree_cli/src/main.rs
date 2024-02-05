@@ -1,6 +1,6 @@
 use clap::{
     builder::{styling::AnsiColor, Styles},
-    command, value_parser, Arg, ArgAction, Parser,
+    command, value_parser, ArgAction, Parser,
 };
 use kill_tree::{kill_tree_with_config, Config, KillResult};
 
@@ -16,65 +16,39 @@ fn get_styles() -> Styles {
 #[command(name = "kill-tree")]
 #[command(bin_name = "kill-tree")]
 #[command(arg_required_else_help = true)]
-#[command(author, version, about, long_about=None, styles=get_styles())]
+#[command(styles = get_styles())]
+#[command(author, version, about, long_about=None)]
 struct Cli {
-    #[arg(help="Process ID to kill with all children.", value_parser(value_parser!(u32)))]
+    #[arg(name = "PROCESS_ID")]
+    #[arg(help = "Process ID to kill with all children.")]
+    #[arg(value_parser = value_parser!(u32))]
     process_id: u32,
 
-    #[arg(help = "Signal to send to the processes.", default_value = "SIGTERM")]
+    #[arg(name = "SIGNAL")]
+    #[arg(help = "Signal to send to the processes.")]
+    #[arg(default_value = "SIGTERM")]
     signal: String,
 
-    #[arg(short, long, help = "No logs are output.")]
+    #[arg(short, long)]
+    #[arg(help = "No logs are output.")]
+    #[arg(action = ArgAction::SetTrue)]
     quiet: bool,
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let matches = command!()
-        .name("kill-tree")
-        .bin_name("kill-tree")
-        .arg_required_else_help(true)
-        .styles(
-            Styles::styled()
-                .header(AnsiColor::BrightGreen.on_default().bold())
-                .usage(AnsiColor::BrightGreen.on_default().bold())
-                .literal(AnsiColor::BrightCyan.on_default().bold())
-                .placeholder(AnsiColor::Cyan.on_default()),
-        )
-        .arg(
-            Arg::new("PROCESS_ID")
-                .help("Process ID to kill with all children.")
-                .value_parser(value_parser!(u32)),
-        )
-        .arg(
-            Arg::new("SIGNAL")
-                .help("Signal to send to the processes.")
-                .default_value("SIGTERM"),
-        )
-        .arg(
-            Arg::new("QUIET")
-                .short('q')
-                .long("quiet")
-                .help("No logs are output.")
-                .action(ArgAction::SetTrue),
-        )
-        .get_matches();
-
-    let process_id = *matches.get_one::<u32>("PROCESS_ID").unwrap();
-    let signal = matches.get_one::<String>("SIGNAL").unwrap();
-    let quiet = *matches.get_one::<bool>("QUIET").unwrap();
-
-    let do_print = !quiet;
+    let cli = Cli::parse();
+    let do_print = !cli.quiet;
     if do_print {
         println!(
             "Killing process with all children. process id: {}, signal: {}",
-            process_id, signal
+            cli.process_id, cli.signal
         );
     }
 
     let kill_results = kill_tree_with_config(
-        process_id,
+        cli.process_id,
         Config {
-            signal: signal.to_string(),
+            signal: cli.signal.to_string(),
         },
     )?;
 
