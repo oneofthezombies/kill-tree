@@ -56,7 +56,7 @@ fn check() {
 }
 
 fn clippy() {
-    run("cargo", &["clippy", "--", "-D", "clippy::pedantic"]);
+    run("cargo", &["clippy", "--", "-D", "clippy::all"]);
 }
 
 fn fmt() {
@@ -107,10 +107,8 @@ fn build(target: &str) {
 }
 
 fn test(target: Option<String>) {
-    if env::var("GITHUB_ACTIONS").is_ok() {
-        if cfg!(target_os = "linux") {
-            run("sudo", &["apt", "install", "musl-tools"]);
-        }
+    if env::var("GITHUB_ACTIONS").is_ok() && cfg!(target_os = "linux") {
+        run("sudo", &["apt", "install", "musl-tools"]);
     }
 
     let Some(target) = target else {
