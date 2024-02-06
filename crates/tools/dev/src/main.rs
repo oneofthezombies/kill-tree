@@ -26,7 +26,7 @@ fn run(program: &str, args: &[&str]) {
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())
         .args(args);
-    println!("Run {:?} {:?}", program, args);
+    println!("Run {program} {args:?}");
     match command.status() {
         Ok(status) => {
             if !status.success() {
@@ -35,7 +35,7 @@ fn run(program: &str, args: &[&str]) {
             }
         }
         Err(e) => {
-            eprintln!("Error: {:?}", e);
+            eprintln!("Error: {e}");
             std::process::exit(1);
         }
     }
