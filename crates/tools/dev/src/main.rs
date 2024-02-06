@@ -18,6 +18,7 @@ enum Commands {
     Fmt,
     Build { platform: String },
     Test { platform: Option<String> },
+    PrePush,
 }
 
 fn run(program: &str, args: &[&str]) {
@@ -35,7 +36,7 @@ fn run(program: &str, args: &[&str]) {
             }
         }
         Err(e) => {
-            eprintln!("Error: {e}");
+            eprintln!("Error: {e:?}");
             std::process::exit(1);
         }
     }
@@ -129,6 +130,13 @@ fn test(platform: Option<String>) {
     }
 }
 
+fn pre_push() {
+    check();
+    clippy();
+    fmt();
+    test(None);
+}
+
 fn main() {
     let cli = Cli::parse();
     match cli.command {
@@ -137,6 +145,7 @@ fn main() {
         Some(Commands::Fmt) => fmt(),
         Some(Commands::Build { platform }) => build(&platform),
         Some(Commands::Test { platform }) => test(platform),
+        Some(Commands::PrePush) => pre_push(),
         None => {
             panic!("No command");
         }

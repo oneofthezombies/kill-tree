@@ -2,14 +2,5 @@
 
 set -e
 
-echo check
-cargo run --package tool-dev -- check
-
-echo clippy
-cargo run --package tool-dev -- clippy
-
-echo fmt
-cargo run --package tool-dev -- fmt
-
-echo test
-cargo run --package tool-dev -- test
+echo cargo run --package tool-dev -- pre-push
+cargo run --package tool-dev -- pre-push
