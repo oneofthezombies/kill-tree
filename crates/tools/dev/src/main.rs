@@ -99,6 +99,11 @@ fn build(target: &str) {
                 .join("release")
                 .join("kill_tree_cli")
         };
+
+        if cfg!(unix) {
+            run("chmod", &["+x", file_path.to_str().unwrap()]);
+        }
+
         let mut output_path = std::fs::OpenOptions::new()
             .write(true)
             .append(true)
