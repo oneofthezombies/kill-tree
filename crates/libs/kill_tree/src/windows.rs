@@ -3,6 +3,7 @@ use crate::{
     tree,
 };
 use std::ffi;
+use tracing::instrument;
 use windows::Win32::{
     Foundation::{CloseHandle, ERROR_NO_MORE_FILES, E_ACCESSDENIED, E_INVALIDARG},
     System::{
@@ -20,6 +21,7 @@ const SYSTEM_IDLE_PROCESS_PROCESS_ID: u32 = 0;
 /// process id of System
 const SYSTEM_PROCESS_ID: u32 = 4;
 
+#[instrument]
 fn kill(process_id: ProcessId) -> common::Result<single::Output> {
     let result;
     unsafe {
@@ -94,6 +96,7 @@ impl Impl {
         }
     }
 
+    #[deprecated(note = "change to global function and add #[instrument] attribute")]
     pub(crate) async fn get_process_infos(&self) -> common::Result<ProcessInfos> {
         let mut process_infos = Vec::new();
         let mut error = None;

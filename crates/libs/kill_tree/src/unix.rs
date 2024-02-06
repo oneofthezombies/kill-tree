@@ -11,6 +11,7 @@ use nix::{
     sys::signal::{self, Signal},
     unistd::Pid,
 };
+use tracing::instrument;
 
 const KERNEL_PROCESS_ID: u32 = 0;
 const INIT_PROCESS_ID: u32 = 1;
@@ -44,6 +45,7 @@ pub(crate) fn validate_process_id(
     }
 }
 
+#[instrument]
 fn kill(process_id: ProcessId, signal: Signal) -> common::Result<single::Output> {
     let result = signal::kill(Pid::from_raw(process_id as i32), signal);
     match result {
