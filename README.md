@@ -2,17 +2,17 @@
 
 ![logo](docs/images/logo.jpg)
 
-[![Crates.io][crates-badge]][crates-url]
+A library and CLI tool that kills all of target process and its children recursively not depending on the other commands such as `kill`, `ps`, `pgrep`, `taskkill` or `wmic`.  
+This is written in Rust and powered by [Tokio](https://github.com/tokio-rs/tokio).  
+This project is inspired by [node-tree-kill](https://github.com/pkrumins/node-tree-kill).  Thank you. 🤟  
+
 [![Build Status][actions-badge]][actions-url]
+[![Crates.io][crates-badge]][crates-url]
 
 [actions-badge]: https://github.com/oneofthezombies/kill-tree/workflows/CI/badge.svg
 [actions-url]: https://github.com/oneofthezombies/kill-tree/actions?query=workflow?CI+branch=main
 [crates-badge]: https://img.shields.io/crates/v/kill-tree.svg
 [crates-url]: https://crates.io/crates/kill-tree
-
-A library and CLI tool that kills all of target process and its children recursively not depending on the other commands such as `kill`, `ps`, `pgrep`, `taskkill` or `wmic`.  
-This is written in Rust and powered by [Tokio](https://github.com/tokio-rs/tokio).  
-This project is inspired by [node-tree-kill](https://github.com/pkrumins/node-tree-kill).  Thank you. 🤟  
 
 ## Why Did I Make
 
