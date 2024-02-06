@@ -10,8 +10,7 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
-
+  build-lint-test:
     runs-on: ubuntu-latest
 
     steps:
@@ -20,7 +19,11 @@ jobs:
       with:
         node-version: '20.11.0'
     # - uses: dtolnay/rust-toolchain@stable
-    - name: Build
-      run: cargo build --verbose
-    - name: Run tests
-      run: cargo test --verbose
+    - name: cargo check
+      run: cargo check --workspace
+    - name: cargo clippy
+      run: cargo clippy -- -D clippy::pedantic
+    - name: cargo fmt
+      run: cargo fmt -- --check
+    - name: cargo test
+      run: cargo test --workspace
