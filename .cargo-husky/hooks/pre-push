@@ -1,0 +1,15 @@
+#!/bin/sh
+
+set -e
+
+echo 'cargo check --workspace'
+cargo check --workspace
+
+echo 'cargo clippy -- -W clippy::pedantic'
+ cargo clippy -- -W clippy::pedantic
+
+echo 'cargo fmt -- --check'
+cargo fmt -- --check
+
+echo 'cargo test --workspace'
+cargo test --workspace
