@@ -8,6 +8,7 @@ edition.workspace = true
 authors.workspace = true
 repository.workspace = true
 license.workspace = true
+readme.workspace = true
 
 [dependencies]
 tokio = { version = "1.36.0", features = ["full"] }
