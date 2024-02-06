@@ -74,6 +74,10 @@ fn fmt() {
 }
 
 fn build(target: &str) {
+    if env::var("GITHUB_ACTIONS").is_ok() && cfg!(target_os = "linux") {
+        run("sudo", &["apt", "install", "musl-tools"]);
+    }
+
     env::set_var("RUSTFLAGS", "-C target-feature=+crt-static");
     run("rustup", &["target", "add", target]);
     run(
@@ -95,32 +99,16 @@ fn build(target: &str) {
                 .join("release")
                 .join("kill_tree_cli")
         };
-        let zip_path = format!("{target}.zip");
-        let zip_file = std::fs::File::create(zip_path.clone()).unwrap();
-        let mut zip = zip::ZipWriter::new(zip_file);
-        let options = zip::write::FileOptions::default()
-            .compression_method(zip::CompressionMethod::Stored)
-            .unix_permissions(0o755);
-        let file_name = file_path.file_name().unwrap().to_str().unwrap();
-        zip.start_file(file_name, options).unwrap();
-        let mut file = std::fs::File::open(file_path).unwrap();
-        std::io::copy(&mut file, &mut zip).unwrap();
-        zip.finish().unwrap();
-
         let mut output_path = std::fs::OpenOptions::new()
             .write(true)
             .append(true)
             .open(output)
             .unwrap();
-        writeln!(output_path, "ARTIFACT_PATH={zip_path}").unwrap();
+        writeln!(output_path, "ARTIFACT_PATH={}", file_path.to_str().unwrap()).unwrap();
     }
 }
 
 fn test(target: Option<String>) {
-    if env::var("GITHUB_ACTIONS").is_ok() && cfg!(target_os = "linux") {
-        run("sudo", &["apt", "install", "musl-tools"]);
-    }
-
     let Some(target) = target else {
         run("cargo", &["test", "--workspace"]);
         return;
