@@ -107,6 +107,12 @@ fn build(target: &str) {
 }
 
 fn test(target: Option<String>) {
+    if env::var("GITHUB_ACTIONS").is_ok() {
+        if cfg!(target_os = "linux") {
+            run("sudo", &["apt", "install", "musl-tools"]);
+        }
+    }
+
     let Some(target) = target else {
         run("cargo", &["test", "--workspace"]);
         return;
