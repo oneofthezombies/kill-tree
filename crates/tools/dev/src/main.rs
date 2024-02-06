@@ -1,6 +1,6 @@
 use clap::{Parser, Subcommand};
 use std::{
-    env,
+    env, panic,
     process::{Command, Stdio},
 };
 
@@ -121,6 +121,17 @@ fn test(platform: Option<String>) {
 }
 
 fn main() {
+    panic::set_hook(Box::new(|panic_info| {
+        let location = panic_info.location().unwrap();
+        eprintln!(
+            "Panic occurred in file '{}' at line {}",
+            location.file(),
+            location.line()
+        );
+        eprintln!("Panic message: {:?}", panic_info);
+        std::process::abort();
+    }));
+
     let cli = Cli::parse();
     match cli.command {
         Some(Commands::Check) => check(),
