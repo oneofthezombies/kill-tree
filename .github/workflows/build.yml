@@ -18,12 +18,13 @@ jobs:
     - uses: actions/setup-node@v4
       with:
         node-version: '20.11.0'
-    # - uses: dtolnay/rust-toolchain@stable
     - name: cargo check
       run: cargo check --workspace
     - name: cargo clippy
       run: cargo clippy -- -D clippy::pedantic
     - name: cargo fmt
       run: cargo fmt -- --check
-    - name: cargo test
-      run: cargo test --workspace
+    - name: build
+      run: cargo run --package tool-dev -- build linux
+    - name: test
+      run: cargo run --package tool-dev -- test linux
