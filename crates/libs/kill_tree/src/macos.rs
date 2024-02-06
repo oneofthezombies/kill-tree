@@ -66,8 +66,15 @@ pub(crate) async fn get_process_infos() -> common::Result<ProcessInfos> {
     }
     let process_ids = buffer.as_slice();
     let mut tasks: JoinSet<Option<ProcessInfo>> = JoinSet::new();
-    for &process_id in process_ids {
-        tasks.spawn(get_process_info(process_id as u32));
+    for &process_id_sign in process_ids {
+        let process_id = match u32::try_from(process_id_sign) {
+            Ok(x) => x,
+            Err(e) => {
+                debug!(error = ?e, "failed to convert process id");
+                continue;
+            }
+        };
+        tasks.spawn(get_process_info(process_id));
     }
     let mut process_infos = ProcessInfos::new();
     while let Some(result) = tasks.join_next().await {
