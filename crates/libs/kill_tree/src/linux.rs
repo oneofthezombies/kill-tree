@@ -13,12 +13,11 @@ async fn get_process_info(path: PathBuf) -> Option<ProcessInfo> {
         return None;
     }
 
-    let file_name = match path.file_name().and_then(|s| s.to_str()) {
-        Some(x) => x,
-        None => {
-            debug!(path = ?path, "failed to get file name");
-            return None;
-        }
+    let file_name = if let Some(x) = path.file_name().and_then(|s| s.to_str()) {
+        x
+    } else {
+        debug!(path = ?path, "failed to get file name");
+        return None;
     };
 
     let process_id = match file_name.parse::<u32>() {
