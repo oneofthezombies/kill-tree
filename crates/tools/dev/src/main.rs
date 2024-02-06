@@ -108,7 +108,7 @@ fn main() {
                     .status()
                     .expect("Failed to build kill_tree_cli");
             } else {
-                panic!("Unsupported platform: {}", platform);
+                panic!("Unsupported platform: {platform}");
             }
         }
         Some(Commands::Test { platform }) => {
@@ -141,7 +141,7 @@ fn main() {
                     .status()
                     .expect("Failed to test kill_tree_cli");
             } else {
-                panic!("Unsupported platform: {}", platform);
+                panic!("Unsupported platform: {platform}");
             }
         }
         None => {
