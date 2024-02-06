@@ -89,12 +89,11 @@ impl Impl {
         while let Some(result) = tasks.join_next().await {
             match result {
                 Ok(Some(single::Output::Killed { process_id })) => {
-                    let process_info = match process_info_map.remove(&process_id) {
-                        Some(x) => x,
-                        None => {
-                            debug!(process_id, "process info not found");
-                            continue;
-                        }
+                    let process_info = if let Some(x) = process_info_map.remove(&process_id) {
+                        x
+                    } else {
+                        debug!(process_id, "process info not found");
+                        continue;
                     };
 
                     outputs.push(tree::Output::Killed {
