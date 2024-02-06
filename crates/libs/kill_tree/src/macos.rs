@@ -33,7 +33,7 @@ pub(crate) async fn get_process_info(process_id: ProcessId) -> Option<ProcessInf
             process_id as i32,
             libproc::PROC_PIDTBSDINFO as i32,
             0,
-            std::ptr::addr_of_mut!(proc_bsdinfo) as *mut c_void,
+            std::ptr::addr_of_mut!(proc_bsdinfo).cast::<c_void>(),
             proc_bsdinfo_size_sign,
         )
     };
