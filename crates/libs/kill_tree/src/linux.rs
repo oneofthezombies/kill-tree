@@ -4,7 +4,7 @@ use tokio::{fs, task::JoinSet};
 use tracing::{debug, instrument};
 
 /// decimal value is 4194304
-const AVAILABLE_MAX_PROCESS_ID: u32 = 0x400000;
+const AVAILABLE_MAX_PROCESS_ID: u32 = 0x0040_0000;
 
 #[instrument]
 async fn get_process_info(path: PathBuf) -> Option<ProcessInfo> {
