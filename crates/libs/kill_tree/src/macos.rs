@@ -57,7 +57,7 @@ pub(crate) async fn get_process_infos() -> common::Result<ProcessInfos> {
         libproc::proc_listpids(
             libproc::PROC_ALL_PIDS,
             0_u32,
-            buffer.as_mut_ptr() as _,
+            buffer.as_mut_ptr().cast(),
             buffer_size,
         )
     };
