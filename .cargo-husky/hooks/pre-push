@@ -2,14 +2,14 @@
 
 set -e
 
-echo 'cargo check --workspace'
-cargo check --workspace
+echo check
+cargo run --package tool-dev -- check
 
-echo 'cargo clippy -- -D clippy::pedantic'
-cargo clippy -- -D clippy::pedantic
+echo clippy
+cargo run --package tool-dev -- clippy
 
-echo 'cargo fmt -- --check'
-cargo fmt -- --check
+echo fmt
+cargo run --package tool-dev -- fmt
 
-echo 'cargo test --workspace'
-cargo test --workspace
+echo test
+cargo run --package tool-dev -- test
