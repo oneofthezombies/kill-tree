@@ -106,6 +106,7 @@ mod tests {
 }
 
 #[allow(warnings)]
+#[allow(clippy::all)]
 mod libproc {
     include!(concat!(env!("OUT_DIR"), "/libproc_bindings.rs"));
 }
