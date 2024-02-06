@@ -96,9 +96,7 @@ async fn get_process_info(path: PathBuf) -> Option<ProcessInfo> {
         }
     };
 
-    let name = if let Some(x) = name {
-        x
-    } else {
+    let Some(name) = name else {
         debug!(path = ?status_path, "name is None");
         return None;
     };
