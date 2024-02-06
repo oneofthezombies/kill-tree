@@ -19,6 +19,7 @@ enum Commands {
 
 fn main() {
     let cli = Cli::parse();
+
     match cli.command {
         Some(Commands::Build { platform }) => {
             env::set_var("RUSTFLAGS", "-C target-feature=+crt-static");
