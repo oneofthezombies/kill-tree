@@ -42,7 +42,7 @@ pub(crate) async fn get_process_info(process_id: ProcessId) -> Option<ProcessInf
 #[instrument]
 pub(crate) async fn get_process_infos() -> common::Result<ProcessInfos> {
     let buffer_size =
-        unsafe { libproc::proc_listpids(libproc::PROC_ALL_PIDS, 0 as u32, ptr::null_mut(), 0) };
+        unsafe { libproc::proc_listpids(libproc::PROC_ALL_PIDS, 0_u32, ptr::null_mut(), 0) };
     if buffer_size <= 0 {
         return Err(io::Error::last_os_error().into());
     }
@@ -50,7 +50,7 @@ pub(crate) async fn get_process_infos() -> common::Result<ProcessInfos> {
     let result = unsafe {
         libproc::proc_listpids(
             libproc::PROC_ALL_PIDS,
-            0 as u32,
+            0_u32,
             buffer.as_mut_ptr() as _,
             buffer_size,
         )
