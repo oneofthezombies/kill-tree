@@ -68,14 +68,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     name,
                 } => {
                     println!(
-                        "[{}] Killed process. process id: {}, parent process id: {}, name: {}",
-                        index, process_id, parent_process_id, name
+                        "[{index}] Killed process. process id: {process_id}, parent process id: {parent_process_id}, name: {name}"
                     );
                 }
                 kill_tree::tree::Output::MaybeAlreadyTerminated { process_id, reason } => {
                     println!(
-                        "[{}] Maybe already terminated process. process id: {}, reason: {}",
-                        index, process_id, reason
+                        "[{index}] Maybe already terminated process. process id: {process_id}, reason: {reason}"                      
                     );
                 }
             }
