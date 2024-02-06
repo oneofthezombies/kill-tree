@@ -49,7 +49,7 @@ pub(crate) fn validate_process_id(
 fn kill(process_id: ProcessId, signal: Signal) -> common::Result<single::Output> {
     let result = signal::kill(Pid::from_raw(process_id as i32), signal);
     match result {
-        Ok(_) => Ok(single::Output::Killed { process_id }),
+        Ok(()) => Ok(single::Output::Killed { process_id }),
         Err(e) => {
             // ESRCH: No such process.
             // This happens when the process has already terminated.
