@@ -13,6 +13,8 @@ mod windows;
 
 /// Kills all of target process and its children recursively with the given signal.
 /// Signal value is ignored on Windows.
+/// # Errors
+/// Unexpected error occurred.
 pub async fn kill_tree_with_signal(
     process_id: ProcessId,
     signal: &str,
@@ -26,6 +28,8 @@ pub async fn kill_tree_with_signal(
 }
 
 /// Kills all of target process and its children recursively with SIGTERM signal.
+/// # Errors
+/// Unexpected error occurred.
 pub async fn kill_tree(process_id: ProcessId) -> common::Result<tree::Outputs> {
     kill_tree_with_signal(process_id, "SIGTERM").await
 }
