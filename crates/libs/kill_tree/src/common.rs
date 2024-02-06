@@ -131,7 +131,7 @@ fn get_child_process_id_map(
         let children = map.entry(info.parent_process_id).or_default();
         children.push(info.process_id);
     }
-    for (_, children) in map.iter_mut() {
+    for (_, children) in &mut map.iter_mut() {
         children.sort_unstable();
     }
     map
