@@ -22,7 +22,7 @@ pub(crate) type ChildProcessIdMap = HashMap<ProcessId, ChildProcessIds>;
 pub(crate) type ProcessInfoMap = HashMap<ProcessId, ProcessInfo>;
 
 pub(crate) mod single {
-    use super::*;
+    use super::{Error, ProcessId};
 
     pub(crate) enum Output {
         Killed {
@@ -36,7 +36,7 @@ pub(crate) mod single {
 }
 
 pub mod tree {
-    use super::*;
+    use super::{Error, ParentProcessId, ProcessId};
 
     #[derive(Debug)]
     pub enum Output {
