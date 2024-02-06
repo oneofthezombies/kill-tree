@@ -5,8 +5,8 @@ set -e
 echo 'cargo check --workspace'
 cargo check --workspace
 
-echo 'cargo clippy -- -W clippy::pedantic'
- cargo clippy -- -W clippy::pedantic
+echo 'cargo clippy -- -D clippy::pedantic'
+ cargo clippy -- -D clippy::pedantic
 
 echo 'cargo fmt -- --check'
 cargo fmt -- --check
