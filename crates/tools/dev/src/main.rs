@@ -27,9 +27,10 @@ fn run(program: &str, args: &[&str]) {
         .stderr(Stdio::inherit())
         .args(args);
     println!("Run {:?} {:?}", program, args);
-    command
-        .status()
-        .expect(format!("Failed to run {:?} {:?}", program, args).as_str());
+    if let Err(e) = command.status() {
+        eprintln!("Error: {:?}", e);
+        std::process::exit(1);
+    }
 }
 
 fn check() {
