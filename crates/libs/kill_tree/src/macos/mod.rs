@@ -1,3 +1,5 @@
+mod libproc;
+
 use crate::{
     common::{self, Impl, ProcessInfo, ProcessInfos},
     ProcessId,
@@ -103,10 +105,4 @@ mod tests {
             "Process id is too large. process id: 99999, available max process id: 99998"
         );
     }
-}
-
-#[allow(warnings)]
-#[allow(clippy::all)]
-mod libproc {
-    include!(concat!(env!("OUT_DIR"), "/libproc_bindings.rs"));
 }
