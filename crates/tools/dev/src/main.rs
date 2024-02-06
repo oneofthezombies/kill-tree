@@ -1,18 +1,21 @@
 use clap::{Parser, Subcommand};
 use std::{
-    env, panic,
-    process::{Command, Stdio},
+    env,
+    io::Write,
+    panic,
+    path::Path,
+    process::{self, Stdio},
 };
 
 #[derive(Parser)]
 #[command(arg_required_else_help = true)]
 struct Cli {
     #[command(subcommand)]
-    command: Option<Commands>,
+    command: Option<Command>,
 }
 
 #[derive(Subcommand)]
-enum Commands {
+enum Command {
     Check,
     Clippy,
     Fmt,
@@ -28,7 +31,7 @@ enum Commands {
 }
 
 fn run(program: &str, args: &[&str]) {
-    let mut command = Command::new(program);
+    let mut command = process::Command::new(program);
     command
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())
@@ -67,6 +70,46 @@ fn build(target: &str) {
         "cargo",
         &["build", "-p", "kill_tree_cli", "-r", "--target", target],
     );
+
+    if env::var("GITHUB_ACTIONS").is_ok() {
+        match env::var("GITHUB_OUTPUT") {
+            Ok(output) => {
+                let windows_path = Path::new("target")
+                    .join(target)
+                    .join("release")
+                    .join("kill_tree_cli.exe");
+                let file_path = if windows_path.exists() {
+                    windows_path
+                } else {
+                    Path::new("target")
+                        .join(target)
+                        .join("release")
+                        .join("kill_tree_cli")
+                };
+                let zip_path = format!("{}.zip", target);
+                let zip_file = std::fs::File::create(zip_path.clone()).unwrap();
+                let mut zip = zip::ZipWriter::new(zip_file);
+                let options = zip::write::FileOptions::default()
+                    .compression_method(zip::CompressionMethod::Stored)
+                    .unix_permissions(0o755);
+                let file_name = file_path.file_name().unwrap().to_str().unwrap();
+                zip.start_file(file_name, options).unwrap();
+                let mut file = std::fs::File::open(file_path).unwrap();
+                std::io::copy(&mut file, &mut zip).unwrap();
+                zip.finish().unwrap();
+
+                let mut output_path = std::fs::OpenOptions::new()
+                    .write(true)
+                    .append(true)
+                    .open(output)
+                    .unwrap();
+                writeln!(output_path, "ARTIFACT_PATH={}", zip_path).unwrap();
+            }
+            Err(_) => {
+                panic!("No GITHUB_OUTPUT");
+            }
+        }
+    }
 }
 
 fn test(target: Option<String>) {
@@ -88,12 +131,12 @@ fn pre_push() {
 fn main() {
     let cli = Cli::parse();
     match cli.command {
-        Some(Commands::Check) => check(),
-        Some(Commands::Clippy) => clippy(),
-        Some(Commands::Fmt) => fmt(),
-        Some(Commands::Build { target }) => build(&target),
-        Some(Commands::Test { target }) => test(target),
-        Some(Commands::PrePush) => pre_push(),
+        Some(Command::Check) => check(),
+        Some(Command::Clippy) => clippy(),
+        Some(Command::Fmt) => fmt(),
+        Some(Command::Build { target }) => build(&target),
+        Some(Command::Test { target }) => test(target),
+        Some(Command::PrePush) => pre_push(),
         None => {
             panic!("No command");
         }
