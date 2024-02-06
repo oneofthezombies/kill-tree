@@ -48,7 +48,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Ok(x) => x,
         Err(e) => {
             if do_print {
-                println!("Failed to kill processes. error: {}", e);
+                println!("Failed to kill processes. error: {e}");
             }
             let e: Box<dyn std::error::Error> = e;
             return Err(e);
