@@ -1,5 +1,3 @@
-mod libproc;
-
 use crate::{
     common::{self, Impl, ProcessInfo, ProcessInfos},
     ProcessId,
@@ -15,7 +13,13 @@ const AVAILABLE_MAX_PROCESS_ID: u32 = 99999 - 1;
 
 #[instrument]
 pub(crate) async fn get_process_info(process_id: ProcessId) -> Option<ProcessInfo> {
-    let proc_bsdinfo_size = std::mem::size_of::<libproc::proc_bsdinfo>() as u32;
+    let proc_bsdinfo_size = match u32::try_from(std::mem::size_of::<libproc::proc_bsdinfo>()) {
+        Ok(x) => x,
+        Err(e) => {
+            debug!(error = ?e, "failed to convert size of proc_bsdinfo");
+            return None;
+        }
+    };
     let mut proc_bsdinfo = unsafe { std::mem::zeroed::<libproc::proc_bsdinfo>() };
     let result = unsafe {
         libproc::proc_pidinfo(
@@ -105,4 +109,10 @@ mod tests {
             "Process id is too large. process id: 99999, available max process id: 99998"
         );
     }
+}
+
+#[allow(warnings)]
+#[allow(clippy::pedantic)]
+mod libproc {
+    include!(concat!(env!("OUT_DIR"), "/libproc_bindings.rs"));
 }
