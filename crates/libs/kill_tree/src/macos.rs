@@ -20,6 +20,13 @@ pub(crate) async fn get_process_info(process_id: ProcessId) -> Option<ProcessInf
             return None;
         }
     };
+    let proc_bsdinfo_size_sign = match i32::try_from(proc_bsdinfo_size) {
+        Ok(x) => x,
+        Err(e) => {
+            debug!(error = ?e, "failed to convert size of proc_bsdinfo");
+            return None;
+        }
+    };
     let mut proc_bsdinfo = unsafe { std::mem::zeroed::<libproc::proc_bsdinfo>() };
     let result = unsafe {
         libproc::proc_pidinfo(
@@ -27,7 +34,7 @@ pub(crate) async fn get_process_info(process_id: ProcessId) -> Option<ProcessInf
             libproc::PROC_PIDTBSDINFO as i32,
             0,
             &mut proc_bsdinfo as *mut _ as *mut c_void,
-            proc_bsdinfo_size as i32,
+            proc_bsdinfo_size_sign,
         )
     };
     if result <= 0 {
