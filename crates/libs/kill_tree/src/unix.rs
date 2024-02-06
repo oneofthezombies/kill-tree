@@ -47,7 +47,8 @@ pub(crate) fn validate_process_id(
 
 #[instrument]
 fn kill(process_id: ProcessId, signal: Signal) -> common::Result<single::Output> {
-    let result = signal::kill(Pid::from_raw(process_id as i32), signal);
+    let process_id_sign = i32::try_from(process_id)?;
+    let result = signal::kill(Pid::from_raw(process_id_sign), signal);
     match result {
         Ok(()) => Ok(single::Output::Killed { process_id }),
         Err(e) => {
