@@ -13,9 +13,7 @@ async fn get_process_info(path: PathBuf) -> Option<ProcessInfo> {
         return None;
     }
 
-    let file_name = if let Some(x) = path.file_name().and_then(|s| s.to_str()) {
-        x
-    } else {
+    let Some(file_name) = path.file_name().and_then(|s| s.to_str()) else {
         debug!(path = ?path, "failed to get file name");
         return None;
     };
