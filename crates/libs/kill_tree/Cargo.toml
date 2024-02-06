@@ -1,6 +1,6 @@
 [package]
 name = "kill_tree"
-description = "A library that kills all of target process and its children recursively not depending on the other commands such as `kill`, `ps`, `pgrep`, `taskkill` or `wmic`."
+description = "🌳 Kill Tree is a library and CLI tool that kills all of target process and its children recursively not depending on the other commands such as kill, taskkill."
 categories = ["system", "process", "kill"]
 keywords = ["process", "tree-kill", "kill", "taskkill", "terminate"]
 version.workspace = true
