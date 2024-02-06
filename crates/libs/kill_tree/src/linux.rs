@@ -88,9 +88,7 @@ async fn get_process_info(path: PathBuf) -> Option<ProcessInfo> {
         }
     }
 
-    let parent_process_id = if let Some(x) = parent_process_id {
-        x
-    } else {
+    let Some(parent_process_id) = parent_process_id else {
         debug!(path = ?status_path, "parent process id is None");
         return None;
     };
