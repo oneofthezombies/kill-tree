@@ -66,6 +66,49 @@ fn kill(process_id: ProcessId) -> common::Result<single::Output> {
     result
 }
 
+#[instrument]
+pub(crate) async fn get_process_infos() -> common::Result<ProcessInfos> {
+    let mut process_infos = ProcessInfos::new();
+    let mut error = None;
+    unsafe {
+        let snapshot_handle = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0)?;
+        {
+            // do NOT return early from this block
+            let mut process_entry = std::mem::zeroed::<PROCESSENTRY32>();
+            process_entry.dwSize = std::mem::size_of::<PROCESSENTRY32>() as u32;
+            match Process32First(snapshot_handle, &mut process_entry) {
+                Ok(_) => loop {
+                    process_infos.push(ProcessInfo {
+                        process_id: process_entry.th32ProcessID,
+                        parent_process_id: process_entry.th32ParentProcessID,
+                        name: ffi::CStr::from_ptr(process_entry.szExeFile.as_ptr() as _)
+                            .to_string_lossy()
+                            .into_owned(),
+                    });
+                    match Process32Next(snapshot_handle, &mut process_entry) {
+                        Ok(_) => {}
+                        Err(e) => {
+                            if e.code() != ERROR_NO_MORE_FILES.into() {
+                                error = Some(e);
+                            }
+                            break;
+                        }
+                    }
+                },
+                Err(e) => {
+                    error = Some(e);
+                }
+            }
+        }
+        CloseHandle(snapshot_handle)?;
+    }
+    if let Some(e) = error {
+        Err(e.into())
+    } else {
+        Ok(process_infos)
+    }
+}
+
 impl Impl {
     pub(crate) async fn kill_tree(&self) -> common::Result<tree::Outputs> {
         // self.signal is not used on Windows platform yet
@@ -96,47 +139,8 @@ impl Impl {
         }
     }
 
-    #[deprecated(note = "change to global function and add #[instrument] attribute")]
     pub(crate) async fn get_process_infos(&self) -> common::Result<ProcessInfos> {
-        let mut process_infos = Vec::new();
-        let mut error = None;
-        unsafe {
-            let snapshot_handle = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0)?;
-            {
-                // do NOT return early from this block
-                let mut process_entry = std::mem::zeroed::<PROCESSENTRY32>();
-                process_entry.dwSize = std::mem::size_of::<PROCESSENTRY32>() as u32;
-                match Process32First(snapshot_handle, &mut process_entry) {
-                    Ok(_) => loop {
-                        process_infos.push(ProcessInfo {
-                            process_id: process_entry.th32ProcessID,
-                            parent_process_id: process_entry.th32ParentProcessID,
-                            name: ffi::CStr::from_ptr(process_entry.szExeFile.as_ptr() as _)
-                                .to_string_lossy()
-                                .into_owned(),
-                        });
-                        match Process32Next(snapshot_handle, &mut process_entry) {
-                            Ok(_) => {}
-                            Err(e) => {
-                                if e.code() != ERROR_NO_MORE_FILES.into() {
-                                    error = Some(e);
-                                }
-                                break;
-                            }
-                        }
-                    },
-                    Err(e) => {
-                        error = Some(e);
-                    }
-                }
-            }
-            CloseHandle(snapshot_handle)?;
-        }
-        if let Some(e) = error {
-            Err(e.into())
-        } else {
-            Ok(process_infos)
-        }
+        get_process_infos().await
     }
 }
 
