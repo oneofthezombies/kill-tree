@@ -186,5 +186,5 @@ Because it's the operating system that owns the processes.
 | Platform | Dependencies |
 | --- | --- |
 | Windows | kernel32.dll |
-| Linux | TODO |
+| Linux | - |
 | Macos | TODO |
