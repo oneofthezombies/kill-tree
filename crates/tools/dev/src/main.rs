@@ -56,7 +56,17 @@ fn check() {
 }
 
 fn clippy() {
-    run("cargo", &["clippy", "--", "-D", "clippy::all"]);
+    run(
+        "cargo",
+        &[
+            "clippy",
+            "--",
+            "-D",
+            "clippy::all",
+            "-D",
+            "clippy::pedantic",
+        ],
+    );
 }
 
 fn fmt() {
