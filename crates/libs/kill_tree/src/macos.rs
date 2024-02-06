@@ -47,18 +47,25 @@ pub(crate) async fn get_process_info(process_id: ProcessId) -> Option<ProcessInf
 
 #[instrument]
 pub(crate) async fn get_process_infos() -> common::Result<ProcessInfos> {
-    let buffer_size =
+    let buffer_size_sign =
         unsafe { libproc::proc_listpids(libproc::PROC_ALL_PIDS, 0_u32, ptr::null_mut(), 0) };
-    if buffer_size <= 0 {
+    if buffer_size_sign <= 0 {
         return Err(io::Error::last_os_error().into());
     }
-    let mut buffer = vec![0; buffer_size as usize];
+    let buffer_size = match usize::try_from(buffer_size_sign) {
+        Ok(x) => x,
+        Err(e) => {
+            debug!(error = ?e, "failed to convert buffer size");
+            return Err(e.into());
+        }
+    };
+    let mut buffer = vec![0; buffer_size];
     let result = unsafe {
         libproc::proc_listpids(
             libproc::PROC_ALL_PIDS,
             0_u32,
             buffer.as_mut_ptr().cast(),
-            buffer_size,
+            buffer_size_sign,
         )
     };
     if result <= 0 {
