@@ -191,4 +191,5 @@ Because it's the operating system that owns the processes.
 | | advapi32.dll | 
 | | bcrypt.dll |
 | Linux | - |
-| Macos | TODO |
+| Macos | libiconv.dylib |
+| | libSystem.dylib |
