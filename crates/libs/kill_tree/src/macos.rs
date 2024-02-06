@@ -28,10 +28,17 @@ pub(crate) async fn get_process_info(process_id: ProcessId) -> Option<ProcessInf
         }
     };
     let mut proc_bsdinfo = unsafe { std::mem::zeroed::<libproc::proc_bsdinfo>() };
+    let proc_pidtbsdinfo_sign = match i32::try_from(libproc::PROC_PIDTBSDINFO) {
+        Ok(x) => x,
+        Err(e) => {
+            debug!(error = ?e, "failed to convert PROC_PIDTBSDINFO");
+            return None;
+        }
+    };
     let result = unsafe {
         libproc::proc_pidinfo(
             process_id as i32,
-            libproc::PROC_PIDTBSDINFO as i32,
+            proc_pidtbsdinfo_sign,
             0,
             std::ptr::addr_of_mut!(proc_bsdinfo).cast::<c_void>(),
             proc_bsdinfo_size_sign,
