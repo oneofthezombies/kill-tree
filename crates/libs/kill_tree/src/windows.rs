@@ -77,7 +77,7 @@ pub(crate) async fn get_process_infos() -> common::Result<ProcessInfos> {
             let mut process_entry = std::mem::zeroed::<PROCESSENTRY32>();
             process_entry.dwSize = std::mem::size_of::<PROCESSENTRY32>() as u32;
             match Process32First(snapshot_handle, &mut process_entry) {
-                Ok(_) => loop {
+                Ok(()) => loop {
                     process_infos.push(ProcessInfo {
                         process_id: process_entry.th32ProcessID,
                         parent_process_id: process_entry.th32ParentProcessID,
