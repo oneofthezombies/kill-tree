@@ -27,9 +27,17 @@ fn run(program: &str, args: &[&str]) {
         .stderr(Stdio::inherit())
         .args(args);
     println!("Run {:?} {:?}", program, args);
-    if let Err(e) = command.status() {
-        eprintln!("Error: {:?}", e);
-        std::process::exit(1);
+    match command.status() {
+        Ok(status) => {
+            if !status.success() {
+                eprintln!("Exit code: {:?}", status.code());
+                std::process::exit(1);
+            }
+        }
+        Err(e) => {
+            eprintln!("Error: {:?}", e);
+            std::process::exit(1);
+        }
     }
 }
 
@@ -122,17 +130,6 @@ fn test(platform: Option<String>) {
 }
 
 fn main() {
-    panic::set_hook(Box::new(|panic_info| {
-        let location = panic_info.location().unwrap();
-        eprintln!(
-            "Panic occurred in file '{}' at line {}",
-            location.file(),
-            location.line()
-        );
-        eprintln!("Panic message: {:?}", panic_info);
-        std::process::abort();
-    }));
-
     let cli = Cli::parse();
     match cli.command {
         Some(Commands::Check) => check(),
