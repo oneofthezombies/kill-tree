@@ -26,14 +26,14 @@ fn main() {
                 Command::new("rustup")
                     .stdout(Stdio::inherit())
                     .stderr(Stdio::inherit())
-                    .args(&["target", "add", "x86_64-pc-windows-msvc"])
+                    .args(["target", "add", "x86_64-pc-windows-msvc"])
                     .status()
                     .expect("Failed to add x86_64-pc-windows-msvc target");
 
                 Command::new("cargo")
                     .stdout(Stdio::inherit())
                     .stderr(Stdio::inherit())
-                    .args(&[
+                    .args([
                         "build",
                         "-p",
                         "kill_tree_cli",
@@ -47,14 +47,14 @@ fn main() {
                 Command::new("rustup")
                     .stdout(Stdio::inherit())
                     .stderr(Stdio::inherit())
-                    .args(&["target", "add", "x86_64-unknown-linux-musl"])
+                    .args(["target", "add", "x86_64-unknown-linux-musl"])
                     .status()
                     .expect("Failed to add x86_64-unknown-linux-musl target");
 
                 Command::new("cargo")
                     .stdout(Stdio::inherit())
                     .stderr(Stdio::inherit())
-                    .args(&[
+                    .args([
                         "build",
                         "-p",
                         "kill_tree_cli",
@@ -68,21 +68,21 @@ fn main() {
                 Command::new("rustup")
                     .stdout(Stdio::inherit())
                     .stderr(Stdio::inherit())
-                    .args(&["target", "add", "aarch64-apple-darwin"])
+                    .args(["target", "add", "aarch64-apple-darwin"])
                     .status()
                     .expect("Failed to add aarch64-apple-darwin target");
 
                 Command::new("rustup")
                     .stdout(Stdio::inherit())
                     .stderr(Stdio::inherit())
-                    .args(&["target", "add", "x86_64-apple-darwin"])
+                    .args(["target", "add", "x86_64-apple-darwin"])
                     .status()
                     .expect("Failed to add x86_64-apple-darwin target");
 
                 Command::new("cargo")
                     .stdout(Stdio::inherit())
                     .stderr(Stdio::inherit())
-                    .args(&[
+                    .args([
                         "build",
                         "-p",
                         "kill_tree_cli",
@@ -96,7 +96,7 @@ fn main() {
                 Command::new("cargo")
                     .stdout(Stdio::inherit())
                     .stderr(Stdio::inherit())
-                    .args(&[
+                    .args([
                         "build",
                         "-p",
                         "kill_tree_cli",
@@ -115,28 +115,28 @@ fn main() {
                 Command::new("cargo")
                     .stdout(Stdio::inherit())
                     .stderr(Stdio::inherit())
-                    .args(&["test", "--target", "x86_64-pc-windows-msvc"])
+                    .args(["test", "--target", "x86_64-pc-windows-msvc"])
                     .status()
                     .expect("Failed to test kill_tree_cli");
             } else if platform == "linux" {
                 Command::new("cargo")
                     .stdout(Stdio::inherit())
                     .stderr(Stdio::inherit())
-                    .args(&["test", "--target", "x86_64-unknown-linux-musl"])
+                    .args(["test", "--target", "x86_64-unknown-linux-musl"])
                     .status()
                     .expect("Failed to test kill_tree_cli");
             } else if platform == "macos" {
                 Command::new("cargo")
                     .stdout(Stdio::inherit())
                     .stderr(Stdio::inherit())
-                    .args(&["test", "--target", "aarch64-apple-darwin"])
+                    .args(["test", "--target", "aarch64-apple-darwin"])
                     .status()
                     .expect("Failed to test kill_tree_cli");
 
                 Command::new("cargo")
                     .stdout(Stdio::inherit())
                     .stderr(Stdio::inherit())
-                    .args(&["test", "--target", "x86_64-apple-darwin"])
+                    .args(["test", "--target", "x86_64-apple-darwin"])
                     .status()
                     .expect("Failed to test kill_tree_cli");
             } else {
