@@ -35,7 +35,7 @@ pub(crate) async fn get_process_info(process_id: ProcessId) -> Option<ProcessInf
         debug!(error = ?error, process_id, "failed to get process info");
         return None;
     }
-    let name = unsafe { CStr::from_ptr(&proc_bsdinfo.pbi_name[0] as *const i8) }
+    let name = unsafe { CStr::from_ptr(std::ptr::addr_of!(proc_bsdinfo.pbi_name[0])) }
         .to_string_lossy()
         .to_string();
     Some(ProcessInfo {
