@@ -1,6 +1,3 @@
-#[allow(clippy::all)]
-mod bindings {
-    include!(concat!(env!("OUT_DIR"), "/libproc_bindings.rs"));
-}
+#![allow(clippy::all)]
 
-pub(crate) use bindings::*;
+include!(concat!(env!("OUT_DIR"), "/libproc_bindings.rs"));
