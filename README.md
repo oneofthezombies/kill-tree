@@ -108,7 +108,7 @@ use kill_tree::kill_tree;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let process_id = 777;
+    let process_id = 12345;
     let outputs = kill_tree(process_id).await.map_err(|e| e.to_string())?;
     for output in outputs {
         match output {
@@ -118,14 +118,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 name,
             } => {
                 println!(
-                    "Killed process. process id: {}, parent process id: {}, name: {}",
-                    process_id, parent_process_id, name
+                    "Killed process. process id: {process_id}, parent process id: {parent_process_id}, name: {name}"
                 );
             }
             kill_tree::tree::Output::MaybeAlreadyTerminated { process_id, reason } => {
                 println!(
-                    "Maybe already terminated process. process id: {}, reason: {}",
-                    process_id, reason
+                    "Maybe already terminated process. process id: {process_id}, reason: {reason}"
                 );
             }
         }
@@ -141,7 +139,7 @@ use kill_tree::kill_tree_with_signal;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let process_id = 777;
+    let process_id = 12345;
     let outputs = kill_tree_with_signal(process_id, "SIGKILL")
         .await
         .map_err(|e| e.to_string())?;
@@ -153,14 +151,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 name,
             } => {
                 println!(
-                    "Killed process. process id: {}, parent process id: {}, name: {}",
-                    process_id, parent_process_id, name
+                    "Killed process. process id: {process_id}, parent process id: {parent_process_id}, name: {name}"
                 );
             }
             kill_tree::tree::Output::MaybeAlreadyTerminated { process_id, reason } => {
                 println!(
-                    "Maybe already terminated process. process id: {}, reason: {}",
-                    process_id, reason
+                    "Maybe already terminated process. process id: {process_id}, reason: {reason}"
                 );
             }
         }
