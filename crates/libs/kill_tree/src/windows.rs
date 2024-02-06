@@ -86,7 +86,7 @@ pub(crate) async fn get_process_infos() -> common::Result<ProcessInfos> {
                             .into_owned(),
                     });
                     match Process32Next(snapshot_handle, &mut process_entry) {
-                        Ok(_) => {}
+                        Ok(()) => {}
                         Err(e) => {
                             if e.code() != ERROR_NO_MORE_FILES.into() {
                                 error = Some(e);
