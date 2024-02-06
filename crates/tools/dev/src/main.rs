@@ -16,8 +16,14 @@ enum Commands {
     Check,
     Clippy,
     Fmt,
-    Build { platform: String },
-    Test { platform: Option<String> },
+    Build {
+        #[arg(short, long)]
+        target: String,
+    },
+    Test {
+        #[arg(short, long)]
+        target: Option<String>,
+    },
     PrePush,
 }
 
@@ -54,80 +60,22 @@ fn fmt() {
     run("cargo", &["fmt", "--", "--check"]);
 }
 
-fn build(platform: &str) {
+fn build(target: &str) {
     env::set_var("RUSTFLAGS", "-C target-feature=+crt-static");
-    if platform == "windows" {
-        run("rustup", &["target", "add", "x86_64-pc-windows-msvc"]);
-        run(
-            "cargo",
-            &[
-                "build",
-                "-p",
-                "kill_tree_cli",
-                "-r",
-                "--target",
-                "x86_64-pc-windows-msvc",
-            ],
-        );
-    } else if platform == "linux" {
-        run("rustup", &["target", "add", "x86_64-unknown-linux-musl"]);
-        run(
-            "cargo",
-            &[
-                "build",
-                "-p",
-                "kill_tree_cli",
-                "-r",
-                "--target",
-                "x86_64-unknown-linux-musl",
-            ],
-        );
-    } else if platform == "macos" {
-        run("rustup", &["target", "add", "aarch64-apple-darwin"]);
-        run("rustup", &["target", "add", "x86_64-apple-darwin"]);
-        run(
-            "cargo",
-            &[
-                "build",
-                "-p",
-                "kill_tree_cli",
-                "-r",
-                "--target",
-                "aarch64-apple-darwin",
-            ],
-        );
-        run(
-            "cargo",
-            &[
-                "build",
-                "-p",
-                "kill_tree_cli",
-                "-r",
-                "--target",
-                "x86_64-apple-darwin",
-            ],
-        );
-    } else {
-        panic!("Unsupported platform: {platform}");
-    }
+    run("rustup", &["target", "add", target]);
+    run(
+        "cargo",
+        &["build", "-p", "kill_tree_cli", "-r", "--target", target],
+    );
 }
 
-fn test(platform: Option<String>) {
-    let Some(platform) = platform else {
+fn test(target: Option<String>) {
+    let Some(target) = target else {
         run("cargo", &["test", "--workspace"]);
         return;
     };
 
-    if platform == "windows" {
-        run("cargo", &["test", "--target", "x86_64-pc-windows-msvc"]);
-    } else if platform == "linux" {
-        run("cargo", &["test", "--target", "x86_64-unknown-linux-musl"]);
-    } else if platform == "macos" {
-        run("cargo", &["test", "--target", "aarch64-apple-darwin"]);
-        run("cargo", &["test", "--target", "x86_64-apple-darwin"]);
-    } else {
-        panic!("Unsupported platform: {platform}");
-    }
+    run("cargo", &["test", "--target", target.as_str()]);
 }
 
 fn pre_push() {
@@ -143,8 +91,8 @@ fn main() {
         Some(Commands::Check) => check(),
         Some(Commands::Clippy) => clippy(),
         Some(Commands::Fmt) => fmt(),
-        Some(Commands::Build { platform }) => build(&platform),
-        Some(Commands::Test { platform }) => test(platform),
+        Some(Commands::Build { target }) => build(&target),
+        Some(Commands::Test { target }) => test(target),
         Some(Commands::PrePush) => pre_push(),
         None => {
             panic!("No command");
