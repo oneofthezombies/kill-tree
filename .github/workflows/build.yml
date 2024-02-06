@@ -1,4 +1,4 @@
-name: Build, Lint and Test
+name: Lint, Build and Test
 
 on:
   push:
@@ -10,7 +10,7 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build-lint-test:
+  lint-build-test:
     runs-on: ubuntu-latest
 
     steps:
