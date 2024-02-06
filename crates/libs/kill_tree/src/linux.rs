@@ -56,12 +56,11 @@ async fn get_process_info(path: PathBuf) -> Option<ProcessInfo> {
         }
 
         if line.starts_with("PPid:") {
-            let parent_process_id_str = match line.split_whitespace().nth(1) {
-                Some(x) => x,
-                None => {
-                    debug!(path = ?status_path, "PPid line is invalid");
-                    return None;
-                }
+            let parent_process_id_str = if let Some(x) = line.split_whitespace().nth(1) {
+                x
+            } else {
+                debug!(path = ?status_path, "PPid line is invalid");
+                return None;
             };
 
             let parent_process_id_value = match parent_process_id_str.parse::<u32>() {
