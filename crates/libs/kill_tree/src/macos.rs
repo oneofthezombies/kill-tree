@@ -35,9 +35,16 @@ pub(crate) async fn get_process_info(process_id: ProcessId) -> Option<ProcessInf
             return None;
         }
     };
+    let process_id_sign = match i32::try_from(process_id) {
+        Ok(x) => x,
+        Err(e) => {
+            debug!(error = ?e, process_id, "failed to convert process id");
+            return None;
+        }
+    };
     let result = unsafe {
         libproc::proc_pidinfo(
-            process_id as i32,
+            process_id_sign,
             proc_pidtbsdinfo_sign,
             0,
             std::ptr::addr_of_mut!(proc_bsdinfo).cast::<c_void>(),
