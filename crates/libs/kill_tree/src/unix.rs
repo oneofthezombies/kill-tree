@@ -21,23 +21,18 @@ pub(crate) fn validate_process_id(
     available_max: ProcessId,
 ) -> common::Result<()> {
     match process_id {
-        KERNEL_PROCESS_ID => Err(format!(
-            "Not allowed to kill kernel process. process id: {}",
-            process_id
-        )
-        .into()),
-        INIT_PROCESS_ID => Err(format!(
-            "Not allowed to kill init process. process id: {}",
-            process_id
-        )
-        .into()),
+        KERNEL_PROCESS_ID => {
+            Err(format!("Not allowed to kill kernel process. process id: {process_id}").into())
+        }
+        INIT_PROCESS_ID => {
+            Err(format!("Not allowed to kill init process. process id: {process_id}").into())
+        }
         _ => {
             if process_id <= available_max {
                 Ok(())
             } else {
                 Err(format!(
-                    "Process id is too large. process id: {}, available max process id: {}",
-                    process_id, available_max
+                    "Process id is too large. process id: {process_id}, available max process id: {available_max}"
                 )
                 .into())
             }
