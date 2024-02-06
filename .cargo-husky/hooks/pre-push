@@ -6,7 +6,7 @@ echo 'cargo check --workspace'
 cargo check --workspace
 
 echo 'cargo clippy -- -D clippy::pedantic'
- cargo clippy -- -D clippy::pedantic
+cargo clippy -- -D clippy::pedantic
 
 echo 'cargo fmt -- --check'
 cargo fmt -- --check
