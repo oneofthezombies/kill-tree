@@ -177,7 +177,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 | Windows | aarch64 | Not tested |
 | Linux | x86_64 | ✅ |
 | Linux | aarch64 | Not tested |
-| Macos | x86_64 | Not tested |
+| Macos | x86_64 | ✅ |
 | Macos | aarch64 | ✅ |
 
 This CLI and library depend on an operating system's system library.  
