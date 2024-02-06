@@ -6,9 +6,31 @@ A library and CLI tool that kills all of target process and its children recursi
 This is written in Rust and powered by [Tokio](https://github.com/tokio-rs/tokio).  
 This project is inspired by [node-tree-kill](https://github.com/pkrumins/node-tree-kill).  Thank you. 🤟  
 
-🚧 Development of this library is currently in progress.  
+## Support Platform and Architecture
+
+| Platform | Architecture | Support |
+| --- | --- | --- |
+| Windows | x86_64 | ✅ |
+| Windows | aarch64 | Not tested |
+| Linux | x86_64 | ✅ |
+| Linux | aarch64 | Not tested |
+| Macos | x86_64 | Not tested |
+| Macos | aarch64 | ✅ |
+
+This CLI and library depend on an operating system's system library.  
+Because it's the operating system that owns the processes.
+
+| Platform | Dependencies |
+| --- | --- |
+| Windows | kernel32.dll |
+| Linux | TODO |
+| Macos | TODO |
 
 ## Why Did I Make
+
+🔖 TODO
+
+## Why use Tokio
 
 🔖 TODO
 
@@ -45,7 +67,15 @@ Add `kill-tree` to your dependencies.
 kill-tree = "0.1"
 ```
 
-kill process and its children recursively with default signal `SIGTERM`.
+Kill process and its children recursively with default signal `SIGTERM`.  
+Returns a list of process information when a function is called.  
+Process information is `Killed` or `MaybeAlreadyTerminated`.  
+If process information is `Killed` type, it has `process_id`, `parent_process_id` and `name`.  
+Or `MaybeAlreadyTerminated` type, it has `process_id`, `reason`.  
+
+There are two types because they can be killed during the process of querying and killing processes.  
+So, when this query or kill a process, consider it a success even if it fails.  
+This is because the purpose of this library is to make the process `not exist` state.
 
 ```rust
 use kill_tree::kill_tree;
