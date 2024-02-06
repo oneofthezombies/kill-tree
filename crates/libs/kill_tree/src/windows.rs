@@ -44,7 +44,7 @@ fn kill(process_id: ProcessId) -> common::Result<single::Output> {
                             } else {
                                 Err(e.into())
                             }
-                        })
+                        });
                 }
                 CloseHandle(process_handle)?;
             }
