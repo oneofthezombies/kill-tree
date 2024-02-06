@@ -75,7 +75,7 @@ pub(crate) async fn get_process_infos() -> common::Result<ProcessInfos> {
         {
             // do NOT return early from this block
             let mut process_entry = std::mem::zeroed::<PROCESSENTRY32>();
-            process_entry.dwSize = std::mem::size_of::<PROCESSENTRY32>() as u32;
+            process_entry.dwSize = u32::try_from(std::mem::size_of::<PROCESSENTRY32>())?;
             match Process32First(snapshot_handle, &mut process_entry) {
                 Ok(()) => loop {
                     process_infos.push(ProcessInfo {
