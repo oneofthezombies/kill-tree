@@ -81,7 +81,7 @@ pub(crate) async fn get_process_infos() -> common::Result<ProcessInfos> {
                     process_infos.push(ProcessInfo {
                         process_id: process_entry.th32ProcessID,
                         parent_process_id: process_entry.th32ParentProcessID,
-                        name: ffi::CStr::from_ptr(process_entry.szExeFile.as_ptr() as _)
+                        name: ffi::CStr::from_ptr(process_entry.szExeFile.as_ptr().cast())
                             .to_string_lossy()
                             .into_owned(),
                     });
