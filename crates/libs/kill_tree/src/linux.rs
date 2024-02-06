@@ -76,12 +76,11 @@ async fn get_process_info(path: PathBuf) -> Option<ProcessInfo> {
         }
 
         if line.starts_with("Name:") {
-            let name_value = match line.split_whitespace().nth(1) {
-                Some(x) => x.to_string(),
-                None => {
-                    debug!(path = ?status_path, "Name line is invalid");
-                    return None;
-                }
+            let name_value = if let Some(x) = line.split_whitespace().nth(1) {
+                x.to_string()
+            } else {
+                debug!(path = ?status_path, "Name line is invalid");
+                return None;
             };
 
             name = Some(name_value);
