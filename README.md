@@ -2,7 +2,7 @@
 
 ![logo](docs/images/logo.jpg)
 
-A library and CLI tool that kills all of target process and its children recursively not depending on the other commands such as `kill`, `ps`, `pgrep`, `taskkill` or `wmic`.  
+A library and CLI tool that kills all of target process and its children recursively not depending on the other commands such as kill, ps, pgrep, taskkill or wmic.  
 This is written in Rust and powered by [Tokio](https://github.com/tokio-rs/tokio).  
 This project is inspired by [node-tree-kill](https://github.com/pkrumins/node-tree-kill).  Thank you. 🤟  
 
