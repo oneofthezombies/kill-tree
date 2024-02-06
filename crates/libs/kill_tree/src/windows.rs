@@ -75,28 +75,36 @@ pub(crate) async fn get_process_infos() -> common::Result<ProcessInfos> {
         {
             // do NOT return early from this block
             let mut process_entry = std::mem::zeroed::<PROCESSENTRY32>();
-            process_entry.dwSize = u32::try_from(std::mem::size_of::<PROCESSENTRY32>())?;
-            match Process32First(snapshot_handle, &mut process_entry) {
-                Ok(()) => loop {
-                    process_infos.push(ProcessInfo {
-                        process_id: process_entry.th32ProcessID,
-                        parent_process_id: process_entry.th32ParentProcessID,
-                        name: ffi::CStr::from_ptr(process_entry.szExeFile.as_ptr().cast())
-                            .to_string_lossy()
-                            .into_owned(),
-                    });
-                    match Process32Next(snapshot_handle, &mut process_entry) {
-                        Ok(()) => {}
-                        Err(e) => {
-                            if e.code() != ERROR_NO_MORE_FILES.into() {
-                                error = Some(e);
+            let process_entry_size = u32::try_from(std::mem::size_of::<PROCESSENTRY32>());
+            match process_entry_size {
+                Ok(process_entry_size) => {
+                    process_entry.dwSize = process_entry_size;
+                    match Process32First(snapshot_handle, &mut process_entry) {
+                        Ok(()) => loop {
+                            process_infos.push(ProcessInfo {
+                                process_id: process_entry.th32ProcessID,
+                                parent_process_id: process_entry.th32ParentProcessID,
+                                name: ffi::CStr::from_ptr(process_entry.szExeFile.as_ptr().cast())
+                                    .to_string_lossy()
+                                    .into_owned(),
+                            });
+                            match Process32Next(snapshot_handle, &mut process_entry) {
+                                Ok(()) => {}
+                                Err(e) => {
+                                    if e.code() != ERROR_NO_MORE_FILES.into() {
+                                        error = Some(e);
+                                    }
+                                    break;
+                                }
                             }
-                            break;
+                        },
+                        Err(e) => {
+                            error = Some(e);
                         }
                     }
-                },
+                }
                 Err(e) => {
-                    error = Some(e);
+                    error = Some(e.into());
                 }
             }
         }
