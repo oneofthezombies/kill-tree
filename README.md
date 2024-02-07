@@ -55,16 +55,16 @@ This is why I use Rust, and it hasn't been long since I used it, so I think I'll
 
 I like _Task based parallelism_.  
 
-Tokio is asynchronous runtime framework written in Rust. and it's one of the most widely used.  
+Tokio is an asynchronous runtime framework written in Rust, and it is one of the most widely used.  
 In the current environment where _Standard async runtime_ is not yet available, I think using Tokio is a pretty reasonable option.  
 Tokio's robust and many features help me focus on my business logic.  
 
 When I first learned programming, I learned _Role based parallelism_, and I use this.  
 For example, UI thread (main thread), http request thread, loading thread, etc.  
-This approach is not uniform throughput between threads and can be heavy on certain threads.  
+This approach does not guarantee uniform throughput across threads, potentially overburdening certain threads.  
 However, _Task based parallelism_ is likely to equalize throughput between threads so that computing resources are not wasted.  
 
-Tokio runtime written in Rust allows I to work on __Zero cost task based parallelism__ without having to pay attention to detail implementation.  
+The Tokio runtime, written in Rust, allows me to work on __Zero cost task based parallelism__ without having to pay attention to detail implementation.  
 
 ## How to Use
 
