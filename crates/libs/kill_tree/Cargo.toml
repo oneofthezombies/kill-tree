@@ -1,7 +1,6 @@
 [package]
 name = "kill_tree"
 description = "🌳 Kill Tree is a library designed to terminate a specified process and all its child processes recursively, operating independently of other commands like kill or taskkill."
-categories = ["system", "process", "kill"]
 keywords = ["process", "tree-kill", "kill", "taskkill", "terminate"]
 version.workspace = true
 edition.workspace = true
