@@ -14,7 +14,7 @@ This project was inspired by [node-tree-kill](https://github.com/pkrumins/node-t
 [crates-badge]: https://img.shields.io/crates/v/kill-tree.svg
 [crates-url]: https://crates.io/crates/kill-tree
 
-## Why Did I Make
+## Why I Made This
 
 This is my first Rust crate and CLI tool. it means I started it because it was a suitable project for development with Rust.  
 No multi-platform library or CLI existed that could terminate processes recursively.  
@@ -39,7 +39,7 @@ For example, `kill -9 777` or `taskkill /T /F /PID 777`.
 So I made it possible to recursively kill the processes directly from the code if it was a Rust project.  
 I also unified the interface, as the CLI tool to kill processes varies across platforms.  
 
-## Why use Rust
+## Why Use Rust
 
 Rust is a 'battery-included' system programming language without a garbage collector, featuring a package manager, basic package registry, and various utility features.  
 It also supports an asynchronous programming model at the language level, eliminating the need for green threads.  
@@ -51,7 +51,7 @@ Go's 'battery-included' approach with goroutines and channels for concurrency wa
 
 This is why I use Rust, and it hasn't been long since I used it, so I think I'll try more.
 
-## Why use Tokio
+## Why Use Tokio
 
 I like _Task based parallelism_.  
 
