@@ -16,28 +16,28 @@ This project was inspired by [node-tree-kill](https://github.com/pkrumins/node-t
 
 ## Why Did I Make
 
-This is my first Rust crate and CLI tool. it means that I started because it was a suitable project to development with Rust.  
-There was no multi-platform library and CLI to allow the process to be terminated recursively.  
+This is my first Rust crate and CLI tool. it means I started it because it was a suitable project for development with Rust.  
+No multi-platform library or CLI existed that could terminate processes recursively.  
 
 In the past, various types of CLI tools had to be invoked to implement features in the Node.js project.  
 It was a project that should be able to run shell scripts for general purposely like CI/CD tools.  
-I had an issue in Node.js environment where I create a child process on the Windows platform, I run an application or a batch script through `cmd` and the grandchild process would not be terminated.  
+In the Node.js environment on Windows, I encountered an issue where creating a child process and running an application or batch script via cmd would not terminate the grandchild process.  
 The reason is that the Windows platform does not have _Signal_.  
-I had to call `taskkill` to cancel or force kill nested shell scripts that user ran on Windows platforms.  
-And when I terminate the application I distributed, I wanted all of the child processes to be terminate.  
-So, I solved it using a library called `tree-kill` in Npm.js. functionally, I was satisfied.  
+I had to call taskkill to cancel or force kill nested shell scripts that user ran on Windows platforms.  
+When terminating the distributed application, I wanted all child processes to be terminated.  
+So, I solved it using a library called tree-kill in Npm.js. functionally, I was satisfied.  
 
-However, if I need this feature for similar reasons next time, I will need to install Node.js and I fetch `tree-kill` library and run it.  
-This dependence is quite deep. because internally, this invoke CLI tools such as `taskkill`.
-In summary, Node.js runtime (including npm package manager), `tree-kill` package and `taskkill` CLI tool are required.  
-If I run this with an `npx` or wrapped Node.js script, it takes quite a while.  
-because it load and evaluate the script and call `taskkill` from the script to the child process.  
+However, if I need this feature for similar reasons next time, I will need to install Node.js and I fetch tree-kill library and run it.  
+This creates a deep dependency because it internally invokes CLI tools such as taskkill.
+In summary, Node.js runtime (including npm package manager), tree-kill package and taskkill CLI tool are required.  
+If I run this with an npx or wrapped Node.js script, it takes quite a while.  
+because it loads and evaluates the script, then calls taskkill from the script to terminate the child process.  
 
 And it is often necessary to terminate the process in a terminal environment, with different commands for each platform.  
 For example, `kill -9 777` or `taskkill /T /F /PID 777`.  
 
 So I made it possible to recursively kill the processes directly from the code if it was a Rust project.  
-And the interface was unified because the CLI tool that kill the process varies from platform to platform.  
+I also unified the interface, as the CLI tool to kill processes varies across platforms.  
 
 ## Why use Rust
 
