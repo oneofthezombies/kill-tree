@@ -72,7 +72,7 @@ The Tokio runtime, written in Rust, allows me to work on __Zero cost task based 
 
 Below is an example of sending `SIGTERM` signals to a process with process ID `777`, and to all child processes.  
 
-ℹ️ _Signals are ignored on Windows platforms._
+ℹ️ _On Windows platforms, all signals including SIGTERM and SIGKILL are ignored._
 
 ```sh
 kill-tree 777
@@ -80,8 +80,6 @@ kill-tree 777
 
 If you want to send another signal, you can enter that signal as the second parameter.  
 Below is an example of sending a `SIGKILL` signal to a process with process ID `777` and to all child processes.  
-
-ℹ️ _Also, signals are ignored on Windows platforms._
 
 ```sh
 kill-tree 777 SIGKILL
