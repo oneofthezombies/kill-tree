@@ -87,14 +87,14 @@ kill-tree 777 SIGKILL
 
 ### Using as Rust Library
 
-> ⚠️ This library must be called in Tokio runtime.  
+⚠️ Ensure this library is executed within a Tokio runtime environment.  
 
-Add `kill-tree` to your dependencies.
+Add `kill_tree` to your dependencies.
 
 ```toml
 # Cargo.toml
 [dependencies]
-kill-tree = "0.1"
+kill_tree = "0.1"
 ```
 
 Kill process and its children recursively with default signal `SIGTERM`.  
@@ -104,7 +104,7 @@ If process information is `Killed` type, it has `process_id`, `parent_process_id
 Or `MaybeAlreadyTerminated` type, it has `process_id`, `reason`.  
 
 There are two types because they can be killed during the process of querying and killing processes.  
-So, when this query or kill a process, consider it a success even if it fails.  
+Therefore, consider the operation successful even if the query or kill process appears to fail.  
 This is because the purpose of this library is to make the process `not exist` state.
 
 ```rust
