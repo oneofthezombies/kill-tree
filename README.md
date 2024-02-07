@@ -2,9 +2,9 @@
 
 ![logo](docs/images/logo.jpg)
 
-🌳 Kill Tree is a library and CLI tool that kills all of target process and its children recursively not depending on the other commands such as kill, taskkill.  
-This is written in Rust and powered by [Tokio](https://github.com/tokio-rs/tokio).  
-This project is inspired by [node-tree-kill](https://github.com/pkrumins/node-tree-kill).  Thank you. 🤟  
+🌳 Kill Tree is a library and CLI tool designed to terminate a specified process and all its child processes recursively, operating independently of other commands like kill or taskkill.  
+It is written in Rust and powered by [Tokio](https://github.com/tokio-rs/tokio).  
+This project was inspired by [node-tree-kill](https://github.com/pkrumins/node-tree-kill). Thank you. 🤟  
 
 [![Build Status][actions-badge]][actions-url]
 [![Crates.io][crates-badge]][crates-url]
