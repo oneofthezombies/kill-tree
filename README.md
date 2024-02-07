@@ -28,7 +28,7 @@ When terminating the distributed application, I wanted all child processes to be
 So, I solved it using a library called tree-kill in Npm.js. functionally, I was satisfied.  
 
 However, if I need this feature for similar reasons next time, I will need to install Node.js and I fetch tree-kill library and run it.  
-This creates a deep dependency because it internally invokes CLI tools such as taskkill.
+This creates a deep dependency because it internally invokes CLI tools such as taskkill.  
 In summary, Node.js runtime (including npm package manager), tree-kill package and taskkill CLI tool are required.  
 If I run this with an npx or wrapped Node.js script, it takes quite a while.  
 because it loads and evaluates the script, then calls taskkill from the script to terminate the child process.  
@@ -41,15 +41,13 @@ I also unified the interface, as the CLI tool to kill processes varies across pl
 
 ## Why use Rust
 
-Rust is a _battery included_ system programming language that does not have a garbage collector and includes package manager, basic package registry and a variety of other utility features.  
-And it supports asynchronous grammer at the language level so that you don't need a green thread.  
+Rust is a 'battery-included' system programming language without a garbage collector, featuring a package manager, basic package registry, and various utility features.  
+It also supports an asynchronous programming model at the language level, eliminating the need for green threads.  
 
-I started programming in C language, and I used C++ as my main programming language.  
-And I also used Go, JavaScript (including Typescript, Node.js).  
-The C and C++ language do not have a package manager and a basic package registry. (There is, but I didn't see it as mainstream.)  
-Node.js, the JavaScript runtime, operates on an event basis. but an event loop works in one thread and you have to have multiple event loops to use multiple threads.  
-The Go programming language is _battery included_ and has a green thread _goroutine_ and a channel for communication between goroutine.  
-If I didn't know Rust, I might have compromised in Go language. 🙂  
+Having started my programming journey with C and primarily using C++, I've also explored Go and JavaScript (including TypeScript and Node.js).  
+Unlike C and C++, which lack a mainstream package manager and registry, and Node.js, which relies on a single-threaded event loop, Rust offers a comprehensive ecosystem.  
+Go's 'battery-included' approach with goroutines and channels for concurrency was appealing, but Rust's capabilities convinced me otherwise.  
+(If I didn't know Rust, I might have compromised in Go. 🙂)  
 
 This is why I use Rust, and it hasn't been long since I used it, so I think I'll try more.
 
