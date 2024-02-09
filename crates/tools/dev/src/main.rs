@@ -1,11 +1,6 @@
 use clap::{Parser, Subcommand};
-use std::{
-    env,
-    io::Write,
-    panic,
-    path::Path,
-    process::{self, Stdio},
-};
+use sheller::run;
+use std::{env, io::Write, panic, path::Path};
 
 #[derive(Parser)]
 #[command(arg_required_else_help = true)]
@@ -30,96 +25,56 @@ enum Command {
     PrePush,
 }
 
-fn run(program: &str, args: &[&str]) {
-    let mut command = process::Command::new(program);
-    command
-        .stdout(Stdio::inherit())
-        .stderr(Stdio::inherit())
-        .args(args);
-    println!("Run {program} {args:?}");
-    match command.status() {
-        Ok(status) => {
-            if !status.success() {
-                eprintln!("Exit code: {:?}", status.code());
-                std::process::exit(1);
-            }
-        }
-        Err(e) => {
-            eprintln!("Error: {e:?}");
-            std::process::exit(1);
-        }
-    }
-}
-
 fn check() {
-    run("cargo", &["check", "--workspace"]);
+    run!("cargo check --workspace");
 }
 
 fn clippy() {
-    run(
-        "cargo",
-        &[
-            "clippy",
-            "--",
-            "-D",
-            "clippy::all",
-            "-D",
-            "clippy::pedantic",
-        ],
-    );
+    run!("cargo clippy -- -D clippy::all -D clippy::pedantic");
 }
 
 fn fmt() {
-    run("cargo", &["fmt", "--", "--check"]);
+    run!("cargo fmt -- --check");
 }
 
 fn build(target: &str) {
     if env::var("GITHUB_ACTIONS").is_ok() && cfg!(target_os = "linux") {
-        run("sudo", &["apt", "install", "musl-tools"]);
+        run!("sudo apt install musl-tools");
     }
 
     env::set_var("RUSTFLAGS", "-C target-feature=+crt-static");
-    run("rustup", &["target", "add", target]);
-    run(
-        "cargo",
-        &["build", "-p", "kill_tree_cli", "-r", "--target", target],
-    );
+    run!("rustup target add {target}");
+    run!("cargo build --package kill_tree_cli --release --target {target}");
 
     if env::var("GITHUB_ACTIONS").is_ok() {
-        let output = env::var("GITHUB_OUTPUT").expect("No GITHUB_OUTPUT");
-        let windows_path = Path::new("target")
-            .join(target)
-            .join("release")
-            .join("kill_tree_cli.exe");
-        let file_path = if windows_path.exists() {
-            windows_path
+        let output_path = env::var("GITHUB_OUTPUT").expect("No GITHUB_OUTPUT");
+        let release_dir_path = Path::new("target").join(target).join("release");
+        let windows_exe_path = release_dir_path.join("kill_tree_cli.exe");
+        let file_path = if windows_exe_path.exists() {
+            windows_exe_path
         } else {
-            Path::new("target")
-                .join(target)
-                .join("release")
-                .join("kill_tree_cli")
+            release_dir_path.join("kill_tree_cli")
         };
 
         if cfg!(unix) {
-            run("chmod", &["+x", file_path.to_str().unwrap()]);
+            run!("chmod +x {}", file_path.display());
         }
 
-        let mut output_path = std::fs::OpenOptions::new()
+        let mut output_file = std::fs::OpenOptions::new()
             .write(true)
             .append(true)
-            .open(output)
+            .open(output_path)
             .unwrap();
-        writeln!(output_path, "ARTIFACT_PATH={}", file_path.to_str().unwrap()).unwrap();
+        writeln!(output_file, "ARTIFACT_PATH={}", file_path.display()).unwrap();
     }
 }
 
 fn test(target: Option<String>) {
-    let Some(target) = target else {
-        run("cargo", &["test", "--workspace"]);
-        return;
-    };
-
-    run("cargo", &["test", "--target", target.as_str()]);
+    if let Some(target) = target {
+        run!("cargo test --target {target}");
+    } else {
+        run!("cargo test --workspace");
+    }
 }
 
 fn pre_push() {
@@ -129,7 +84,17 @@ fn pre_push() {
     test(None);
 }
 
+fn init_log() {
+    tracing::subscriber::set_global_default(
+        tracing_subscriber::FmtSubscriber::builder()
+            .with_max_level(tracing::Level::TRACE)
+            .finish(),
+    )
+    .expect("setting default subscriber failed");
+}
+
 fn main() {
+    init_log();
     let cli = Cli::parse();
     match cli.command {
         Some(Command::Check) => check(),
