@@ -1,7 +1,3 @@
-use crate::{
-    common::{self, single, Impl, ProcessId, ProcessInfo, ProcessInfos},
-    tree,
-};
 use std::ffi;
 use tracing::instrument;
 use windows::Win32::{
@@ -15,15 +11,45 @@ use windows::Win32::{
     },
 };
 
+use crate::{
+    core::{Error, KillOutput, ProcessId, ProcessInfo, ProcessInfos, Result},
+    Config,
+};
+
+impl From<windows::core::Error> for Error {
+    fn from(error: windows::core::Error) -> Self {
+        Self::Windows(error)
+    }
+}
+
 /// process id of System Idle Process
 const SYSTEM_IDLE_PROCESS_PROCESS_ID: u32 = 0;
 
 /// process id of System
 const SYSTEM_PROCESS_ID: u32 = 4;
 
+pub(crate) fn validate_process_id(process_id: ProcessId) -> Result<()> {
+    match process_id {
+        SYSTEM_IDLE_PROCESS_PROCESS_ID => Err(Error::InvalidProcessId {
+            process_id,
+            reason: "Not allowed to kill System Idle Process".into(),
+        }),
+        SYSTEM_PROCESS_ID => Err(Error::InvalidProcessId {
+            process_id,
+            reason: "Not allowed to kill System".into(),
+        }),
+        _ => Ok(()),
+    }
+}
+
+pub(crate) fn child_process_id_map_filter(process_info: &ProcessInfo) -> bool {
+    // this process is System Idle Process
+    process_info.parent_process_id == process_info.process_id
+}
+
 #[instrument]
-fn kill(process_id: ProcessId) -> common::Result<single::Output> {
-    let result;
+pub(crate) fn kill(process_id: ProcessId, config: &Config) -> Result<KillOutput> {
+    let result: Result<KillOutput>;
     unsafe {
         let open_result = OpenProcess(PROCESS_TERMINATE, false, process_id);
         match open_result {
@@ -31,15 +57,15 @@ fn kill(process_id: ProcessId) -> common::Result<single::Output> {
                 {
                     // do NOT return early from this block
                     result = TerminateProcess(process_handle, 1)
-                        .and(Ok(single::Output::Killed { process_id }))
+                        .and(Ok(KillOutput::Killed { process_id }))
                         .or_else(|e| {
                             if e.code() == E_ACCESSDENIED {
                                 // Access is denied.
                                 // This happens when the process is already terminated.
                                 // This treat as success.
-                                Ok(single::Output::MaybeAlreadyTerminated {
+                                Ok(KillOutput::MaybeAlreadyTerminated {
                                     process_id,
-                                    reason: e.into(),
+                                    source: e.into(),
                                 })
                             } else {
                                 Err(e.into())
@@ -53,9 +79,9 @@ fn kill(process_id: ProcessId) -> common::Result<single::Output> {
                     // The parameter is incorrect.
                     // This happens when the process is already terminated.
                     // This treat as success.
-                    result = Ok(single::Output::MaybeAlreadyTerminated {
+                    result = Ok(KillOutput::MaybeAlreadyTerminated {
                         process_id,
-                        reason: e.into(),
+                        source: e.into(),
                     });
                 } else {
                     result = Err(e.into());
@@ -67,9 +93,9 @@ fn kill(process_id: ProcessId) -> common::Result<single::Output> {
 }
 
 #[instrument]
-pub(crate) async fn get_process_infos() -> common::Result<ProcessInfos> {
+pub(crate) fn get_process_infos() -> Result<ProcessInfos> {
     let mut process_infos = ProcessInfos::new();
-    let mut error = None;
+    let mut error: Option<Error> = None;
     unsafe {
         let snapshot_handle = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0)?;
         {
@@ -92,87 +118,53 @@ pub(crate) async fn get_process_infos() -> common::Result<ProcessInfos> {
                                 Ok(()) => {}
                                 Err(e) => {
                                     if e.code() != ERROR_NO_MORE_FILES.into() {
-                                        error = Some(e);
+                                        error = Some(e.into());
                                     }
                                     break;
                                 }
                             }
                         },
                         Err(e) => {
-                            error = Some(e);
+                            error = Some(e.into());
                         }
                     }
                 }
                 Err(e) => {
-                    error = Some(e.into());
+                    error = Some(Error::InvalidCast {
+                        source: e,
+                        reason: "size of PROCESSENTRY32 to u32".into(),
+                    });
                 }
             }
         }
         CloseHandle(snapshot_handle)?;
     }
     if let Some(e) = error {
-        Err(e.into())
+        Err(e)
     } else {
         Ok(process_infos)
     }
 }
 
-impl Impl {
-    pub(crate) async fn kill_tree(&self) -> common::Result<tree::Outputs> {
-        // self.signal is not used on Windows platform yet
-        let _ = self.signal;
-        self.kill_tree_impl(
-            |process_info| {
-                // this process is System Idle Process
-                process_info.parent_process_id == process_info.process_id
-            },
-            kill,
-        )
-        .await
-    }
+// #[cfg(test)]
+// mod tests {
+//     #[tokio::test]
+//     async fn process_id_0() {
+//         let result = kill_tree(0).await;
+//         assert!(result.is_err());
+//         assert_eq!(
+//             result.unwrap_err().to_string(),
+//             "Not allowed to kill System Idle Process. process id: 0"
+//         );
+//     }
 
-    pub(crate) fn validate_process_id(&self) -> common::Result<()> {
-        match self.process_id {
-            SYSTEM_IDLE_PROCESS_PROCESS_ID => Err(format!(
-                "Not allowed to kill System Idle Process. process id: {}",
-                self.process_id
-            )
-            .into()),
-            SYSTEM_PROCESS_ID => Err(format!(
-                "Not allowed to kill System. process id: {}",
-                self.process_id
-            )
-            .into()),
-            _ => Ok(()),
-        }
-    }
-
-    pub(crate) async fn get_process_infos(&self) -> common::Result<ProcessInfos> {
-        get_process_infos().await
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::kill_tree;
-
-    #[tokio::test]
-    async fn process_id_0() {
-        let result = kill_tree(0).await;
-        assert!(result.is_err());
-        assert_eq!(
-            result.unwrap_err().to_string(),
-            "Not allowed to kill System Idle Process. process id: 0"
-        );
-    }
-
-    #[tokio::test]
-    async fn process_id_4() {
-        let result = kill_tree(4).await;
-        assert!(result.is_err());
-        assert_eq!(
-            result.unwrap_err().to_string(),
-            "Not allowed to kill System. process id: 4"
-        );
-    }
-}
+//     #[tokio::test]
+//     async fn process_id_4() {
+//         let result = kill_tree(4).await;
+//         assert!(result.is_err());
+//         assert_eq!(
+//             result.unwrap_err().to_string(),
+//             "Not allowed to kill System. process id: 4"
+//         );
+//     }
+// }

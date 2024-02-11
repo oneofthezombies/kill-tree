@@ -10,8 +10,8 @@ license.workspace = true
 readme.workspace = true
 
 [dependencies]
-tokio = { version = "1.36.0", features = ["full"] }
 tracing = "0.1.40"
+tokio = { version = "1.36.0", features = ["full"], optional = true }
 
 [dev-dependencies]
 tokio = { version = "1.36.0", features = ["test-util"] }
@@ -28,3 +28,7 @@ nix = { version = "0.27.1", features = ["signal"] }
 
 [target.'cfg(target_os = "macos")'.build-dependencies]
 bindgen = "0.69.2"
+
+[features]
+blocking = []
+tokio = ["dep:tokio"]

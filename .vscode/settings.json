@@ -6,6 +6,7 @@
       "env": {}
     }
   ],
+  "rust-analyzer.cargo.features": ["blocking", "tokio"],
   "[rust]": {
     "editor.defaultFormatter": "rust-lang.rust-analyzer",
     "editor.formatOnSave": true

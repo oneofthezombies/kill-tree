@@ -3,6 +3,7 @@
     "rust-lang.rust-analyzer",
     "tamasfe.even-better-toml",
     "vadimcn.vscode-lldb",
-    "github.vscode-github-actions"
+    "github.vscode-github-actions",
+    "esbenp.prettier-vscode"
   ]
 }

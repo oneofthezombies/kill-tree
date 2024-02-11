@@ -11,6 +11,7 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Command {
+    Init,
     Check,
     Clippy,
     Fmt,
@@ -23,6 +24,21 @@ enum Command {
         target: Option<String>,
     },
     PrePush,
+}
+
+/// During Github Actions Workflow, when running `rustup install nightly` inside a `cargo run --package tool-dev -- init` command on a Windows platform, it will fail with the following error:
+/// ```text
+/// error: could not create link from 'C:\Users\runneradmin\.cargo\bin\rustup.exe' to 'C:\Users\runneradmin\.cargo\bin\cargo.exe'
+/// ```
+/// So for Github Action, I changed to call `rustup install nightly` before calling `cargo run --package tool-dev -- init`.
+/// Please see the workflow file at `.github/workflows/CI.yml`.
+fn init() {
+    if env::var("GITHUB_ACTIONS").is_err() {
+        run!("rustup install nightly");
+    }
+
+    run!("rustup component add rustfmt clippy --toolchain nightly");
+    run!("rustup override set nightly");
 }
 
 fn check() {
@@ -96,15 +112,16 @@ fn init_log() {
 fn main() {
     init_log();
     let cli = Cli::parse();
-    match cli.command {
-        Some(Command::Check) => check(),
-        Some(Command::Clippy) => clippy(),
-        Some(Command::Fmt) => fmt(),
-        Some(Command::Build { target }) => build(&target),
-        Some(Command::Test { target }) => test(target),
-        Some(Command::PrePush) => pre_push(),
-        None => {
-            panic!("No command");
-        }
+    let Some(command) = cli.command else {
+        panic!("No command");
+    };
+    match command {
+        Command::Init => init(),
+        Command::Check => check(),
+        Command::Clippy => clippy(),
+        Command::Fmt => fmt(),
+        Command::Build { target } => build(&target),
+        Command::Test { target } => test(target),
+        Command::PrePush => pre_push(),
     }
 }
