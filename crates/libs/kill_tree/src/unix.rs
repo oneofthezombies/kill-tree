@@ -38,37 +38,6 @@ pub(crate) fn validate_process_id(process_id: ProcessId, available_max: ProcessI
     }
 }
 
-fn parse_process_id_sign(process_id: ProcessId) -> Result<i32> {
-    let process_id_sign = i32::try_from(process_id).map_err(|e| Error::InvalidCast {
-        reason: "Failed to cast process id to i32".into(),
-        source: e,
-    })?;
-    Ok(process_id_sign)
-}
-
-fn parse_kill_result(result: nix::Result<()>, process_id: ProcessId) -> Result<KillOutput> {
-    match result {
-        Ok(()) => Ok(KillOutput::Killed { process_id }),
-        Err(e) => {
-            // ESRCH: No such process.
-            // This happens when the process has already terminated.
-            // This treat as success.
-            if e == nix::errno::Errno::ESRCH {
-                Ok(KillOutput::MaybeAlreadyTerminated {
-                    process_id,
-                    source: e.into(),
-                })
-            } else {
-                Err(e.into())
-            }
-        }
-    }
-}
-
-fn kill(process_id_sign: i32, signal: nix::sys::signal::Signal) -> nix::Result<()> {
-    nix::sys::signal::kill(nix::unistd::Pid::from_raw(process_id_sign), signal)
-}
-
 pub(crate) mod blocking {
     use super::*;
 
@@ -92,16 +61,33 @@ pub(crate) mod blocking {
         process_id: ProcessId,
         signal: nix::sys::signal::Signal,
     ) -> Result<KillOutput> {
-        let process_id_sign = parse_process_id_sign(process_id)?;
-        let result = crate::unix::kill(process_id_sign, signal);
-        parse_kill_result(result, process_id)
+        let process_id_sign = i32::try_from(process_id).map_err(|e| Error::InvalidCast {
+            reason: "Failed to cast process id to i32".into(),
+            source: e,
+        })?;
+        let result = nix::sys::signal::kill(nix::unistd::Pid::from_raw(process_id_sign), signal);
+        match result {
+            Ok(()) => Ok(KillOutput::Killed { process_id }),
+            Err(e) => {
+                // ESRCH: No such process.
+                // This happens when the process has already terminated.
+                // This treat as success.
+                if e == nix::errno::Errno::ESRCH {
+                    Ok(KillOutput::MaybeAlreadyTerminated {
+                        process_id,
+                        source: e.into(),
+                    })
+                } else {
+                    Err(e.into())
+                }
+            }
+        }
     }
 }
 
 pub(crate) mod tokio {
-    use async_trait::async_trait;
-
     use super::*;
+    use async_trait::async_trait;
 
     #[derive(Clone)]
     struct Killer {
@@ -121,15 +107,9 @@ pub(crate) mod tokio {
     }
 
     #[instrument]
-    pub(crate) async fn kill(
-        process_id: ProcessId,
-        signal: nix::sys::signal::Signal,
-    ) -> Result<KillOutput> {
-        let process_id_sign = parse_process_id_sign(process_id)?;
-        let result =
-            ::tokio::task::spawn_blocking(move || crate::unix::kill(process_id_sign, signal))
-                .await?;
-        parse_kill_result(result, process_id)
+    async fn kill(process_id: ProcessId, signal: nix::sys::signal::Signal) -> Result<KillOutput> {
+        ::tokio::task::spawn_blocking(move || crate::unix::blocking::kill(process_id_sign, signal))
+            .await;
     }
 }
 
