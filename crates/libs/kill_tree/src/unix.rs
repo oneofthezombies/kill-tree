@@ -108,8 +108,8 @@ pub(crate) mod tokio {
 
     #[instrument]
     async fn kill(process_id: ProcessId, signal: nix::sys::signal::Signal) -> Result<KillOutput> {
-        ::tokio::task::spawn_blocking(move || crate::unix::blocking::kill(process_id_sign, signal))
-            .await;
+        ::tokio::task::spawn_blocking(move || crate::unix::blocking::kill(process_id, signal))
+            .await?
     }
 }
 
