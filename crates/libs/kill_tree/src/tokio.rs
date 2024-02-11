@@ -43,7 +43,7 @@ pub async fn kill_tree_with_config(process_id: ProcessId, config: &Config) -> Re
         tasks.spawn(async move { killer.kill(process_id).await });
     }
     let mut process_info_map = common::get_process_info_map(process_infos);
-    let mut outputs = Vec::new();
+    let mut outputs = Outputs::new();
     while let Some(join_result) = tasks.join_next().await {
         let kill_output = join_result??;
         let Some(output) = common::parse_kill_output(kill_output, &mut process_info_map) else {
