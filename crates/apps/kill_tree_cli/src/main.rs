@@ -2,7 +2,7 @@ use clap::{
     builder::{styling::AnsiColor, Styles},
     command, value_parser, ArgAction, Parser,
 };
-use kill_tree::kill_tree_with_signal;
+use kill_tree::{tokio::kill_tree_with_config, Config};
 
 fn get_styles() -> Styles {
     Styles::styled()
@@ -34,7 +34,7 @@ struct Cli {
 }
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> kill_tree::Result<()> {
     let cli = Cli::parse();
     let do_print = !cli.quiet;
     if do_print {
@@ -44,13 +44,20 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         );
     }
 
-    let outputs = match kill_tree_with_signal(cli.process_id, cli.signal.as_str()).await {
+    let outputs = match kill_tree_with_config(
+        cli.process_id,
+        &Config {
+            signal: cli.signal,
+            ..Default::default()
+        },
+    )
+    .await
+    {
         Ok(x) => x,
         Err(e) => {
             if do_print {
                 println!("Failed to kill processes. error: {e}");
             }
-            let e: Box<dyn std::error::Error> = e;
             return Err(e);
         }
     };
@@ -62,7 +69,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         );
         for (index, output) in outputs.iter().enumerate() {
             match output {
-                kill_tree::tree::Output::Killed {
+                kill_tree::Output::Killed {
                     process_id,
                     parent_process_id,
                     name,
@@ -71,9 +78,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         "[{index}] Killed process. process id: {process_id}, parent process id: {parent_process_id}, name: {name}"
                     );
                 }
-                kill_tree::tree::Output::MaybeAlreadyTerminated { process_id, reason } => {
+                kill_tree::Output::MaybeAlreadyTerminated { process_id, source } => {
                     println!(
-                        "[{index}] Maybe already terminated process. process id: {process_id}, reason: {reason}"                      
+                        "[{index}] Maybe already terminated process. process id: {process_id}, source: {source}"
                     );
                 }
             }

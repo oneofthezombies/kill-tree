@@ -1,72 +1,11 @@
-use tracing::debug;
-
 use crate::{
     core::{
-        ChildProcessIdMap, ChildProcessIdMapFilter, ProcessIds, ProcessInfo, ProcessInfoMap,
-        ProcessInfos,
+        ChildProcessIdMap, ChildProcessIdMapFilter, KillOutput, ProcessIds, ProcessInfo,
+        ProcessInfoMap, ProcessInfos,
     },
-    Config, ProcessId,
+    Config, Output, ProcessId,
 };
-
-// pub(crate) struct Impl {
-//     pub(crate) process_id: ProcessId,
-//     pub(crate) signal: String,
-// }
-
-// impl Impl {
-//     pub(crate) async fn kill_tree_impl(
-//         &self,
-//         filter: impl Fn(&ProcessInfo) -> bool,
-//         kill: impl Fn(ProcessId) -> Result<single::Output> + Send + Copy + 'static,
-//     ) -> Result<tree::Outputs> {
-//         self.validate_process_id()?;
-//         let process_infos = self.get_process_infos().await?;
-//         let child_process_id_map = get_child_process_id_map(&process_infos, filter);
-//         let process_ids_to_kill = get_process_ids_to_kill(self.process_id, &child_process_id_map);
-//         let mut tasks: JoinSet<Option<single::Output>> = JoinSet::new();
-//         // traverse in reverse order to kill children first
-//         for &process_id in process_ids_to_kill.iter().rev() {
-//             tasks.spawn(async move {
-//                 let output = match kill(process_id) {
-//                     Ok(x) => x,
-//                     Err(e) => {
-//                         debug!(error = ?e, "failed to kill process");
-//                         return None;
-//                     }
-//                 };
-//                 Some(output)
-//             });
-//         }
-
-//         let mut process_info_map = get_process_info_map(process_infos);
-//         let mut outputs = Vec::new();
-//         while let Some(result) = tasks.join_next().await {
-//             match result {
-//                 Ok(Some(single::Output::Killed { process_id })) => {
-//                     let Some(process_info) = process_info_map.remove(&process_id) else {
-//                         debug!(process_id, "process info not found");
-//                         continue;
-//                     };
-
-//                     outputs.push(tree::Output::Killed {
-//                         process_id: process_info.process_id,
-//                         parent_process_id: process_info.parent_process_id,
-//                         name: process_info.name,
-//                     });
-//                 }
-//                 Ok(Some(single::Output::MaybeAlreadyTerminated { process_id, reason })) => {
-//                     outputs.push(tree::Output::MaybeAlreadyTerminated { process_id, reason });
-//                 }
-//                 Ok(None) => {}
-//                 Err(e) => {
-//                     debug!(error = ?e, "failed to join task");
-//                     continue;
-//                 }
-//             }
-//         }
-//         Ok(outputs)
-//     }
-// }
+use tracing::debug;
 
 /// Create a map from parent process id to child process ids.
 pub(crate) fn get_child_process_id_map(
@@ -113,7 +52,7 @@ pub(crate) fn get_process_ids_to_kill(
                 debug!(
                     process_id,
                     include_target = config.include_target,
-                    "skipping target process id"
+                    "Skipping target process id"
                 );
             }
         } else {
@@ -126,4 +65,27 @@ pub(crate) fn get_process_ids_to_kill(
         }
     }
     process_ids_to_kill
+}
+
+pub(crate) fn parse_kill_output(
+    kill_output: KillOutput,
+    process_info_map: &mut ProcessInfoMap,
+) -> Option<Output> {
+    match kill_output {
+        KillOutput::Killed { process_id } => {
+            let Some(process_info) = process_info_map.remove(&process_id) else {
+                debug!(process_id, "Process info not found");
+                return None;
+            };
+
+            Some(Output::Killed {
+                process_id: process_info.process_id,
+                parent_process_id: process_info.parent_process_id,
+                name: process_info.name,
+            })
+        }
+        KillOutput::MaybeAlreadyTerminated { process_id, source } => {
+            Some(Output::MaybeAlreadyTerminated { process_id, source })
+        }
+    }
 }

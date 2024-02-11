@@ -5,11 +5,22 @@ pub enum Error {
         reason: String,
     },
     InvalidCast {
-        source: std::num::TryFromIntError,
         reason: String,
+        source: std::num::TryFromIntError,
     },
-    #[cfg(target_os = "windows")]
+    InvalidProcEntry {
+        process_id: ProcessId,
+        path: String,
+        reason: String,
+        source: Option<std::num::ParseIntError>,
+    },
+    Io(std::io::Error),
+    #[cfg(windows)]
     Windows(windows::core::Error),
+    #[cfg(unix)]
+    Unix(nix::Error),
+    #[cfg(feature = "tokio")]
+    TokioJoin(tokio::task::JoinError),
 }
 
 impl std::fmt::Display for Error {
@@ -21,13 +32,33 @@ impl std::fmt::Display for Error {
             Error::InvalidCast { source, reason } => {
                 write!(f, "Invalid cast. Reason: {reason}. Source: {source}")
             }
-            #[cfg(target_os = "windows")]
+            Error::InvalidProcEntry {
+                process_id,
+                path,
+                reason,
+                source,
+            } => write!(
+                f,
+                "Invalid proc entry. Process id: {process_id}. Path: {path}. Reason: {reason}. Source: {source:?}"
+            ),
+            Error::Io(e) => write!(f, "I/O error: {e}"),
+            #[cfg(windows)]
             Error::Windows(e) => write!(f, "Windows error: {e}"),
+            #[cfg(unix)]
+            Error::Unix(e) => write!(f, "Unix error: {e}"),
+            #[cfg(feature = "tokio")]
+            Error::TokioJoin(e) => write!(f, "Tokio join error: {e}"),
         }
     }
 }
 
 impl std::error::Error for Error {}
+
+impl From<std::io::Error> for Error {
+    fn from(error: std::io::Error) -> Self {
+        Self::Io(error)
+    }
+}
 
 pub type Result<T> = std::result::Result<T, Error>;
 

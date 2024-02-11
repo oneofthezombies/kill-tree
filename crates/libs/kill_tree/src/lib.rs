@@ -3,7 +3,10 @@ mod core;
 
 pub use crate::core::{Config, Error, Output, Outputs, ParentProcessId, ProcessId, Result};
 
-#[cfg(target_os = "windows")]
+#[cfg(unix)]
+mod unix;
+
+#[cfg(windows)]
 mod windows;
 
 #[cfg(target_os = "linux")]

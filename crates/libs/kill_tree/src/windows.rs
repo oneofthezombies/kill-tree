@@ -1,3 +1,4 @@
+use crate::core::{Config, Error, KillOutput, ProcessId, ProcessInfo, ProcessInfos, Result};
 use std::ffi;
 use tracing::instrument;
 use windows::Win32::{
@@ -9,11 +10,6 @@ use windows::Win32::{
         },
         Threading::{OpenProcess, TerminateProcess, PROCESS_TERMINATE},
     },
-};
-
-use crate::{
-    core::{Error, KillOutput, ProcessId, ProcessInfo, ProcessInfos, Result},
-    Config,
 };
 
 impl From<windows::core::Error> for Error {
