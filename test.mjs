@@ -14,7 +14,7 @@ async function main() {
       target.on("spawn", () => {
         console.log(`Spawned server ${target.pid}`);
         const start = Date.now();
-        const kill_tree = spawn("target\\release\\blocking.exe", [target.pid], {
+        const kill_tree = spawn("target/release/blocking", [target.pid], {
           stdio: "inherit",
         });
         kill_tree.on("exit", () => {
@@ -36,10 +36,18 @@ async function main() {
 
 main();
 
+// windows
+// blocking
+// Total elapsed time: 16689ms
+// Mean elapsed time: 16.689ms
 // tokio
 // Total elapsed time: 17835ms
 // Mean elapsed time: 17.835ms
 
+// linux
 // blocking
-// Total elapsed time: 16689ms
-// Mean elapsed time: 16.689ms
+// Total elapsed time: 1325ms
+// Mean elapsed time: 1.325ms
+// tokio
+// Total elapsed time: 6285ms
+// Mean elapsed time: 6.285ms
