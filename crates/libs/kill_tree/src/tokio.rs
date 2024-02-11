@@ -4,7 +4,7 @@ use crate::{
 };
 use async_trait::async_trait;
 
-#[cfg(target_os = "windows")]
+#[cfg(windows)]
 use crate::windows as imp;
 
 #[cfg(target_os = "linux")]
