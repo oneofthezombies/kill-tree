@@ -80,6 +80,10 @@ pub(crate) type ChildProcessIdMap = std::collections::HashMap<ProcessId, ChildPr
 pub(crate) type ProcessInfoMap = std::collections::HashMap<ProcessId, ProcessInfo>;
 pub(crate) type ChildProcessIdMapFilter = fn(&ProcessInfo) -> bool;
 
+pub(crate) trait Killable {
+    fn kill(&self, process_id: ProcessId) -> Result<KillOutput>;
+}
+
 pub(crate) enum KillOutput {
     Killed {
         process_id: ProcessId,
@@ -89,8 +93,6 @@ pub(crate) enum KillOutput {
         source: Error,
     },
 }
-
-pub(crate) type KillOutputs = Vec<KillOutput>;
 
 #[derive(Debug)]
 pub enum Output {

@@ -54,8 +54,8 @@ main();
 
 // macos
 // blocking
-// Total elapsed time: 4100ms
-// Mean elapsed time: 4.1ms
+// Total elapsed time: 3724ms
+// Mean elapsed time: 3.724ms
 // tokio
-// Total elapsed time: 20227ms
-// Mean elapsed time: 20.227ms
+// Total elapsed time: 4089ms
+// Mean elapsed time: 4.089ms

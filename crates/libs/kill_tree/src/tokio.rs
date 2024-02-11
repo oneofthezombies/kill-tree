@@ -1,22 +1,11 @@
-use crate::{
-    common,
-    core::{Config, Error, KillOutput, Outputs, ProcessId, Result},
-};
-use async_trait::async_trait;
-
-#[cfg(windows)]
-use crate::windows as imp;
+use crate::core::{Config, Error, Outputs, ProcessId, Result};
 
 #[cfg(target_os = "linux")]
 use crate::linux as imp;
-
 #[cfg(target_os = "macos")]
 use crate::macos as imp;
-
-#[async_trait]
-pub(crate) trait Killable: Clone + Send + Sync {
-    async fn kill(&self, process_id: ProcessId) -> Result<KillOutput>;
-}
+#[cfg(windows)]
+use crate::windows as imp;
 
 impl From<tokio::task::JoinError> for Error {
     fn from(e: tokio::task::JoinError) -> Self {
@@ -31,27 +20,7 @@ pub async fn kill_tree(process_id: ProcessId) -> Result<Outputs> {
 pub async fn kill_tree_with_config(process_id: ProcessId, config: &Config) -> Result<Outputs> {
     imp::validate_process_id(process_id)?;
     let process_infos = imp::tokio::get_process_infos().await?;
-    let child_process_id_map =
-        common::get_child_process_id_map(&process_infos, imp::child_process_id_map_filter);
-    let process_ids_to_kill =
-        common::get_process_ids_to_kill(process_id, &child_process_id_map, config);
-    let killer = imp::tokio::new_killer(config)?;
-    let mut tasks: ::tokio::task::JoinSet<Result<KillOutput>> = ::tokio::task::JoinSet::new();
-    // kill children first
-    for &process_id in process_ids_to_kill.iter().rev() {
-        let killer = killer.clone();
-        tasks.spawn(async move { killer.kill(process_id).await });
-    }
-    let mut process_info_map = common::get_process_info_map(process_infos);
-    let mut outputs = Outputs::new();
-    while let Some(join_result) = tasks.join_next().await {
-        let kill_output = join_result??;
-        let Some(output) = common::parse_kill_output(kill_output, &mut process_info_map) else {
-            continue;
-        };
-        outputs.push(output);
-    }
-    Ok(outputs)
+    crate::common::kill_tree_internal(process_id, config, process_infos)
 }
 
 // #[cfg(test)]

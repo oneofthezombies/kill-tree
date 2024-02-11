@@ -1,11 +1,15 @@
-use crate::{
-    core::{
-        ChildProcessIdMap, ChildProcessIdMapFilter, KillOutput, ProcessIds, ProcessInfo,
-        ProcessInfoMap, ProcessInfos,
-    },
-    Config, Output, ProcessId,
+use crate::core::{
+    ChildProcessIdMap, ChildProcessIdMapFilter, Config, KillOutput, Killable, Output, Outputs,
+    ProcessId, ProcessIds, ProcessInfo, ProcessInfoMap, ProcessInfos, Result,
 };
 use tracing::debug;
+
+#[cfg(target_os = "linux")]
+use crate::linux as imp;
+#[cfg(target_os = "macos")]
+use crate::macos as imp;
+#[cfg(windows)]
+use crate::windows as imp;
 
 /// Create a map from parent process id to child process ids.
 pub(crate) fn get_child_process_id_map(
@@ -88,4 +92,28 @@ pub(crate) fn parse_kill_output(
             Some(Output::MaybeAlreadyTerminated { process_id, source })
         }
     }
+}
+
+pub(crate) fn kill_tree_internal(
+    process_id: ProcessId,
+    config: &Config,
+    process_infos: ProcessInfos,
+) -> Result<Outputs> {
+    let child_process_id_map =
+        crate::common::get_child_process_id_map(&process_infos, imp::child_process_id_map_filter);
+    let process_ids_to_kill =
+        crate::common::get_process_ids_to_kill(process_id, &child_process_id_map, config);
+    let killer = imp::new_killer(config)?;
+    let mut outputs = Outputs::new();
+    let mut process_info_map = crate::common::get_process_info_map(process_infos);
+    // kill children first
+    for &process_id in process_ids_to_kill.iter().rev() {
+        let kill_output = killer.kill(process_id)?;
+        let Some(output) = crate::common::parse_kill_output(kill_output, &mut process_info_map)
+        else {
+            continue;
+        };
+        outputs.push(output);
+    }
+    Ok(outputs)
 }
