@@ -16,10 +16,10 @@ fn get_node_script_spawn_infinite_child() -> String {
     const child = spawn('node', ['-e', 'setInterval(() => {}, 1000);'], {
         stdio: 'inherit',
     });
-    child.on('exit', (code, signal) => {
-        console.log('child process exited with ' +
-                    `code ${code} and signal ${signal}`);
-    });
+    // child.on('exit', (code, signal) => {
+    //     console.log('child process exited with ' +
+    //                 `code ${code} and signal ${signal}`);
+    // });
     setInterval(() => {}, 1000);
     "#
     .to_string()
