@@ -20,7 +20,7 @@ pub enum Error {
     #[cfg(unix)]
     Unix(nix::Error),
     #[cfg(feature = "tokio")]
-    TokioJoin(tokio::task::JoinError),
+    TokioJoin(::tokio::task::JoinError),
 }
 
 impl std::fmt::Display for Error {
@@ -125,5 +125,29 @@ impl Default for Config {
             signal: "SIGTERM".to_string(),
             include_target: true,
         }
+    }
+}
+
+#[cfg(feature = "blocking")]
+pub(crate) mod blocking {
+    use super::{ProcessInfos, Result};
+
+    pub(crate) trait ProcessInfosProvidable {
+        fn get_process_infos(&self) -> Result<ProcessInfos>;
+    }
+}
+
+#[cfg(feature = "tokio")]
+pub(crate) mod tokio {
+    use super::{Error, ProcessInfos, Result};
+
+    impl From<::tokio::task::JoinError> for Error {
+        fn from(e: ::tokio::task::JoinError) -> Self {
+            Error::TokioJoin(e)
+        }
+    }
+
+    pub(crate) trait ProcessInfosProvidable {
+        async fn get_process_infos(&self) -> Result<ProcessInfos>;
     }
 }

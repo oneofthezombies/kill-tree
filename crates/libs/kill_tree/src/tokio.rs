@@ -1,4 +1,4 @@
-use crate::core::{Config, Error, Outputs, ProcessId, Result};
+use crate::core::{tokio::ProcessInfosProvidable, Config, Outputs, ProcessId, Result};
 
 #[cfg(target_os = "linux")]
 use crate::linux as imp;
@@ -6,12 +6,6 @@ use crate::linux as imp;
 use crate::macos as imp;
 #[cfg(windows)]
 use crate::windows as imp;
-
-impl From<tokio::task::JoinError> for Error {
-    fn from(e: tokio::task::JoinError) -> Self {
-        Error::TokioJoin(e)
-    }
-}
 
 /// Returns the max available process ID.
 /// # Platform-specifics
@@ -119,6 +113,7 @@ pub async fn kill_tree(process_id: ProcessId) -> Result<Outputs> {
 /// ```
 pub async fn kill_tree_with_config(process_id: ProcessId, config: &Config) -> Result<Outputs> {
     imp::validate_process_id(process_id)?;
-    let process_infos = imp::tokio::get_process_infos().await?;
+    let process_infos_provider = imp::tokio::ProcessInfosProvider {};
+    let process_infos = process_infos_provider.get_process_infos().await?;
     crate::common::kill_tree_internal(process_id, config, process_infos)
 }

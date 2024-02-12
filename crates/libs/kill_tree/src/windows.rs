@@ -169,17 +169,27 @@ pub(crate) fn get_process_infos() -> Result<ProcessInfos> {
 #[cfg(feature = "blocking")]
 pub(crate) mod blocking {
     use super::{ProcessInfos, Result};
+    use crate::core::blocking::ProcessInfosProvidable;
 
-    pub(crate) fn get_process_infos() -> Result<ProcessInfos> {
-        crate::windows::get_process_infos()
+    pub(crate) struct ProcessInfosProvider {}
+
+    impl ProcessInfosProvidable for ProcessInfosProvider {
+        fn get_process_infos(&self) -> Result<ProcessInfos> {
+            crate::windows::get_process_infos()
+        }
     }
 }
 
 #[cfg(feature = "tokio")]
 pub(crate) mod tokio {
     use super::{ProcessInfos, Result};
+    use crate::core::tokio::ProcessInfosProvidable;
 
-    pub(crate) async fn get_process_infos() -> Result<ProcessInfos> {
-        crate::windows::get_process_infos()
+    pub(crate) struct ProcessInfosProvider {}
+
+    impl ProcessInfosProvidable for ProcessInfosProvider {
+        async fn get_process_infos(&self) -> Result<ProcessInfos> {
+            crate::windows::get_process_infos()
+        }
     }
 }

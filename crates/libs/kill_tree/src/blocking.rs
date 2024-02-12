@@ -1,4 +1,4 @@
-use crate::core::{Config, Outputs, ProcessId, Result};
+use crate::core::{blocking::ProcessInfosProvidable, Config, Outputs, ProcessId, Result};
 
 #[cfg(target_os = "linux")]
 use crate::linux as imp;
@@ -125,6 +125,7 @@ pub fn kill_tree(process_id: ProcessId) -> Result<Outputs> {
 /// ```
 pub fn kill_tree_with_config(process_id: ProcessId, config: &Config) -> Result<Outputs> {
     imp::validate_process_id(process_id)?;
-    let process_infos = imp::blocking::get_process_infos()?;
+    let process_infos_provider = imp::blocking::ProcessInfosProvider {};
+    let process_infos = process_infos_provider.get_process_infos()?;
     crate::common::kill_tree_internal(process_id, config, process_infos)
 }
