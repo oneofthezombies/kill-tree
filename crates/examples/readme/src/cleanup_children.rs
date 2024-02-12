@@ -9,7 +9,7 @@ fn cleanup_children() {
         ..Default::default()
     };
     let result = kill_tree_with_config(current_process_id, &config);
-    println!("kill_tree_with_config: {:?}", result);
+    println!("kill_tree_with_config: {result:?}");
 }
 
 fn main() {
