@@ -141,34 +141,25 @@ pub(crate) mod blocking {
     use super::{ProcessInfos, Result};
     use crate::core::blocking::ProcessInfosProvidable;
 
-    pub(crate) fn get_process_infos() -> Result<ProcessInfos> {
-        crate::macos::get_process_infos()
-    }
-
     pub(crate) struct ProcessInfosProvider {}
 
     impl ProcessInfosProvidable for ProcessInfosProvider {
         fn get_process_infos(&self) -> Result<ProcessInfos> {
-            crate::macos::blocking::get_process_infos()
+            crate::macos::get_process_infos()
         }
     }
 }
 
 #[cfg(feature = "tokio")]
 pub(crate) mod tokio {
-    use crate::core::tokio::ProcessInfosProvidable;
-
     use super::{ProcessInfos, Result};
-
-    pub(crate) async fn get_process_infos() -> Result<ProcessInfos> {
-        crate::macos::get_process_infos()
-    }
+    use crate::core::tokio::ProcessInfosProvidable;
 
     pub(crate) struct ProcessInfosProvider {}
 
     impl ProcessInfosProvidable for ProcessInfosProvider {
         async fn get_process_infos(&self) -> Result<ProcessInfos> {
-            crate::macos::tokio::get_process_infos().await
+            crate::macos::get_process_infos()
         }
     }
 }
