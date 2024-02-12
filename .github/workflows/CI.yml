@@ -38,11 +38,13 @@ jobs:
       run: cargo run --package tool-dev -- clippy
     - name: Format
       run: cargo run --package tool-dev -- fmt
+    - name: Test
+      run: cargo run --package tool-dev -- test
+    - name: Bench
+      run: cargo run --package tool-dev -- bench
     - name: Build
       id: build
       run: cargo run --package tool-dev -- build --target ${{ matrix.target }}
-    - name: Test
-      run: cargo run --package tool-dev -- test --target ${{ matrix.target }}
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:

@@ -15,13 +15,11 @@ enum Command {
     Check,
     Clippy,
     Fmt,
+    Bench,
+    Test,
     Build {
         #[arg(short, long)]
         target: String,
-    },
-    Test {
-        #[arg(short, long)]
-        target: Option<String>,
     },
     PrePush,
 }
@@ -84,19 +82,20 @@ fn build(target: &str) {
     }
 }
 
-fn test(target: Option<String>) {
-    if let Some(target) = target {
-        run!("cargo test --target {target}");
-    } else {
-        run!("cargo test --workspace");
-    }
+fn test() {
+    run!("cargo test --workspace --all-targets --all-features");
+}
+
+fn bench() {
+    run!("cargo bench --workspace --all-targets --all-features");
 }
 
 fn pre_push() {
     check();
     clippy();
     fmt();
-    test(None);
+    test();
+    bench();
 }
 
 fn init_log() {
@@ -119,8 +118,9 @@ fn main() {
         Command::Check => check(),
         Command::Clippy => clippy(),
         Command::Fmt => fmt(),
+        Command::Bench => bench(),
+        Command::Test => test(),
         Command::Build { target } => build(&target),
-        Command::Test { target } => test(target),
         Command::PrePush => pre_push(),
     }
 }
