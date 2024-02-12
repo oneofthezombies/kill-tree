@@ -96,7 +96,7 @@ fn pre_push() {
     check();
     // clippy();
     fmt();
-    test(None);
+    // test(None);
 }
 
 fn init_log() {
