@@ -368,7 +368,7 @@ mod tests {
         let status = match std::fs::read_to_string(&status_path) {
             Ok(x) => x,
             Err(e) => {
-                panic!("Failed to read status. error: {}", e);
+                panic!("Failed to read status. error: {e}");
             }
         };
         let process_info = parse_status(process_id, status_path.display().to_string(), &status)
