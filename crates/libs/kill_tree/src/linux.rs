@@ -87,10 +87,7 @@ fn parse_status(process_id: ProcessId, status_path: String, status: String) -> R
     })
 }
 
-fn parse_proc_entry(
-    process_id: ProcessId,
-    path: &std::path::PathBuf,
-) -> Result<std::path::PathBuf> {
+fn parse_proc_entry(process_id: ProcessId, path: &std::path::Path) -> Result<std::path::PathBuf> {
     if !path.is_dir() {
         return Err(Error::InvalidProcEntry {
             process_id,
