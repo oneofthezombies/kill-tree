@@ -6,7 +6,7 @@ edition.workspace = true
 [dependencies]
 kill_tree = { path = "../../libs/kill_tree", features = ["tokio"] }
 tokio = { version = "1.36.0", features = ["full"] }
-ctrlc = "3.4.2"
+ctrlc = { version = "3.4.2", features = ["termination"] }
 
 [[bin]]
 name = "kill_tree"

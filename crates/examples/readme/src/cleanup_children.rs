@@ -1,6 +1,5 @@
 use kill_tree::{blocking::kill_tree_with_config, Config};
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::Arc;
+use std::sync::mpsc::channel;
 
 fn cleanup_children() {
     let current_process_id = std::process::id();
@@ -13,16 +12,16 @@ fn cleanup_children() {
 }
 
 fn main() {
-    let running = Arc::new(AtomicBool::new(true));
-    let r = running.clone();
+    let (tx, rx) = channel();
 
     ctrlc::set_handler(move || {
         cleanup_children();
-        r.store(false, Ordering::SeqCst);
+        tx.send(()).expect("Could not send signal on channel.");
     })
-    .expect("Error setting Ctrl-C handler");
+    .expect("Error setting handler.");
 
-    println!("Waiting for Ctrl-C...");
-    while running.load(Ordering::SeqCst) {}
+    println!("Current process id: {}", std::process::id());
+    println!("Waiting for signal...");
+    rx.recv().expect("Could not receive from channel.");
     println!("Got it! Exiting...");
 }
