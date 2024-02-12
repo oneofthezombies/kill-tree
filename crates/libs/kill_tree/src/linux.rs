@@ -143,8 +143,13 @@ pub(crate) fn child_process_id_map_filter(_process_info: &ProcessInfo) -> bool {
     false
 }
 
-pub(crate) fn new_killer(config: &Config) -> Result<impl Killable> {
-    crate::unix::new_killer(config)
+pub(crate) struct KillerBuilder {}
+
+impl KillableBuildable for KillerBuilder {
+    fn new_killable(&self, config: &Config) -> Result<Killer> {
+        let killer_builder = crate::unix::KillerBuilder {};
+        killer_builder.new_killer(config)
+    }
 }
 
 #[cfg(feature = "blocking")]

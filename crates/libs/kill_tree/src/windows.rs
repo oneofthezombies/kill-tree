@@ -1,5 +1,6 @@
 use crate::core::{
-    Config, Error, KillOutput, Killable, ProcessId, ProcessInfo, ProcessInfos, Result,
+    Config, Error, KillOutput, Killable, KillableBuildable, ProcessId, ProcessInfo, ProcessInfos,
+    Result,
 };
 use std::ffi;
 use tracing::instrument;
@@ -50,7 +51,7 @@ pub(crate) fn child_process_id_map_filter(process_info: &ProcessInfo) -> bool {
     process_info.parent_process_id == process_info.process_id
 }
 
-struct Killer {}
+pub(crate) struct Killer {}
 
 impl Killable for Killer {
     fn kill(&self, process_id: ProcessId) -> Result<KillOutput> {
@@ -58,8 +59,12 @@ impl Killable for Killer {
     }
 }
 
-pub(crate) fn new_killer(_config: &Config) -> Result<impl Killable> {
-    Ok(Killer {})
+pub(crate) struct KillerBuilder {}
+
+impl KillableBuildable for KillerBuilder {
+    fn new_killable(&self, _config: &Config) -> Result<Killer> {
+        Ok(Killer {})
+    }
 }
 
 #[instrument]

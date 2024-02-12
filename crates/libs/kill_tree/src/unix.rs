@@ -64,7 +64,7 @@ pub(crate) fn kill(process_id: ProcessId, signal: nix::sys::signal::Signal) -> R
 }
 
 #[derive(Clone)]
-struct Killer {
+pub(crate) struct Killer {
     signal: nix::sys::signal::Signal,
 }
 
@@ -74,46 +74,11 @@ impl Killable for Killer {
     }
 }
 
-pub(crate) fn new_killer(config: &Config) -> Result<impl Killable> {
-    let signal = config.signal.parse()?;
-    Ok(Killer { signal })
+pub(crate) struct KillerBuilder {}
+
+impl KillableBuildable for KillerBuilder {
+    fn new_killable(&self, config: &Config) -> Result<Killer> {
+        let signal = config.signal.parse()?;
+        Ok(Killer { signal })
+    }
 }
-
-// #[cfg(test)]
-// mod tests {
-//     use std::process::Command;
-
-//     use crate::{kill_tree, kill_tree_with_signal};
-
-//     #[tokio::test]
-//     async fn process_id_0() {
-//         let result = kill_tree(0).await;
-//         assert!(result.is_err());
-//         assert_eq!(
-//             result.unwrap_err().to_string(),
-//             "Not allowed to kill kernel process. process id: 0"
-//         );
-//     }
-
-//     #[tokio::test]
-//     async fn process_id_1() {
-//         let result = kill_tree(1).await;
-//         assert!(result.is_err());
-//         assert_eq!(
-//             result.unwrap_err().to_string(),
-//             "Not allowed to kill init process. process id: 1"
-//         );
-//     }
-
-//     #[tokio::test]
-//     async fn hello_world_with_invalid_signal() {
-//         let process = Command::new("node")
-//             .arg("../../../tests/resources/hello_world.mjs")
-//             .spawn()
-//             .unwrap();
-//         let process_id = process.id();
-//         let result = kill_tree_with_signal(process_id, "SIGINVALID").await;
-//         assert!(result.is_err());
-//         assert_eq!(result.unwrap_err().to_string(), "EINVAL: Invalid argument");
-//     }
-// }

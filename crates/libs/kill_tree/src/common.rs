@@ -1,6 +1,6 @@
 use crate::core::{
-    ChildProcessIdMap, ChildProcessIdMapFilter, Config, KillOutput, Killable, Output, Outputs,
-    ProcessId, ProcessIds, ProcessInfo, ProcessInfoMap, ProcessInfos, Result,
+    ChildProcessIdMap, ChildProcessIdMapFilter, Config, KillOutput, Killable, KillableBuildable,
+    Output, Outputs, ProcessId, ProcessIds, ProcessInfo, ProcessInfoMap, ProcessInfos, Result,
 };
 use tracing::debug;
 
@@ -107,12 +107,13 @@ pub(crate) fn kill_tree_internal(
         crate::common::get_child_process_id_map(&process_infos, imp::child_process_id_map_filter);
     let process_ids_to_kill =
         crate::common::get_process_ids_to_kill(process_id, &child_process_id_map, config);
-    let killer = imp::new_killer(config)?;
+    let killable_builder = imp::KillerBuilder {};
+    let killable = killable_builder.new_killable(config)?;
     let mut outputs = Outputs::new();
     let mut process_info_map = crate::common::get_process_info_map(process_infos);
     // kill children first
     for &process_id in process_ids_to_kill.iter().rev() {
-        let kill_output = killer.kill(process_id)?;
+        let kill_output = killable.kill(process_id)?;
         let Some(output) = crate::common::parse_kill_output(kill_output, &mut process_info_map)
         else {
             continue;
