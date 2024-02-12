@@ -38,5 +38,3 @@ kill-tree --version
 
 echo "kill-tree installed successfully."
 exit 0
-
-
