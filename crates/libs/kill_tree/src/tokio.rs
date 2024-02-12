@@ -59,10 +59,31 @@ pub fn get_available_max_process_id() -> u32 {
 /// };
 ///
 /// fn main() -> Result<()> {
-///     let _ = kill_tree(get_available_max_process_id())?;
+///     let _ = kill_tree(get_available_max_process_id()).await?;
 ///     Ok(())
 /// }
 /// ```
+///
+/// # Errors
+///
+/// ## `InvalidProcessId`
+/// Returns the process ID of the kernel or system, or if greater than the available maximum process ID.  
+///
+/// ## `InvalidCast`
+/// Returned internally when an invalid type conversion occurs during a system API call.  
+/// This is an error that should not occur under normal circumstances.  
+///
+/// ## `InvalidProcEntry`
+/// Returned when inquiry, or parsing within the Linux `/proc/` path fails.  
+///
+/// ## `Io`
+/// Returned when access within the Linux `/proc/` path fails.  
+///
+/// ## `Windows`
+/// Returned when the `Win32` API used internally fails.  
+///
+/// ## `Unix`
+/// Returned when the `libc` API used internally fails.  
 pub async fn kill_tree(process_id: ProcessId) -> Result<Outputs> {
     kill_tree_with_config(process_id, &Config::default()).await
 }
@@ -111,6 +132,27 @@ pub async fn kill_tree(process_id: ProcessId) -> Result<Outputs> {
 ///     Ok(())
 /// }
 /// ```
+///
+/// # Errors
+///
+/// ## `InvalidProcessId`
+/// Returns the process ID of the kernel or system, or if greater than the available maximum process ID.  
+///
+/// ## `InvalidCast`
+/// Returned internally when an invalid type conversion occurs during a system API call.  
+/// This is an error that should not occur under normal circumstances.  
+///
+/// ## `InvalidProcEntry`
+/// Returned when inquiry, or parsing within the Linux `/proc/` path fails.  
+///
+/// ## `Io`
+/// Returned when access within the Linux `/proc/` path fails.  
+///
+/// ## `Windows`
+/// Returned when the `Win32` API used internally fails.  
+///
+/// ## `Unix`
+/// Returned when the `libc` API used internally fails.  
 pub async fn kill_tree_with_config(process_id: ProcessId, config: &Config) -> Result<Outputs> {
     imp::validate_process_id(process_id)?;
     let process_infos_provider = imp::tokio::ProcessInfosProvider {};
