@@ -1,0 +1,24 @@
+[package]
+name = "example-bench"
+version = "0.0.0"
+edition.workspace = true
+
+[dependencies]
+tracing = "0.1.40"
+tracing-subscriber = "0.3.18"
+
+[[bin]]
+name = "kill_tree_windows"
+path = "src/kill_tree_windows.rs"
+
+[[bin]]
+name = "kill_tree_linux"
+path = "src/kill_tree_linux.rs"
+
+[[bin]]
+name = "kill_tree_macos"
+path = "src/kill_tree_macos.rs"
+
+[[bin]]
+name = "taskkill"
+path = "src/taskkill.rs"
