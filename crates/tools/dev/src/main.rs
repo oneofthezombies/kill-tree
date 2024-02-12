@@ -50,7 +50,7 @@ fn clippy() {
 }
 
 fn fmt() {
-    run!("argo fmt --all --check");
+    run!("cargo fmt --all --check");
 }
 
 fn build(target: &str) {
