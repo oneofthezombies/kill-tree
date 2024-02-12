@@ -46,11 +46,11 @@ main();
 
 // linux
 // blocking
-// Total elapsed time: 1325ms
-// Mean elapsed time: 1.325ms
+// Total elapsed time: 1318ms
+// Mean elapsed time: 1.318ms
 // tokio
-// Total elapsed time: 6285ms
-// Mean elapsed time: 6.285ms
+// Total elapsed time: 6291ms
+// Mean elapsed time: 6.291ms
 
 // macos
 // blocking

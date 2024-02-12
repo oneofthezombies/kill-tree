@@ -214,8 +214,8 @@ pub(crate) mod tokio {
 
     #[instrument]
     pub(crate) async fn get_process_infos() -> Result<ProcessInfos> {
-        let mut tasks: ::tokio::task::JoinSet<Result<ProcessInfo>> = ::tokio::task::JoinSet::new();
         let mut read_dir = ::tokio::fs::read_dir("/proc").await?;
+        let mut process_infos = ProcessInfos::new();
         while let Some(entry) = read_dir.next_entry().await? {
             let file_name = entry.file_name();
             let Some(file_name) = file_name.to_str() else {
@@ -229,18 +229,7 @@ pub(crate) mod tokio {
                     continue;
                 }
             };
-            tasks.spawn(get_process_info(process_id, entry.path()));
-        }
-        let mut process_infos = ProcessInfos::new();
-        while let Some(join_result) = tasks.join_next().await {
-            let result = join_result?;
-            let process_info = match result {
-                Ok(x) => x,
-                Err(e) => {
-                    debug!(error = ?e, "Failed to get process info");
-                    continue;
-                }
-            };
+            let process_info = get_process_info(process_id, entry.path()).await?;
             process_infos.push(process_info);
         }
         Ok(process_infos)
