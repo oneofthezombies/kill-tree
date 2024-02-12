@@ -151,3 +151,156 @@ pub(crate) fn kill_tree_internal(
     }
     Ok(outputs)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[cfg(windows)]
+    #[test]
+    fn available_max_process_id_windows() {
+        assert_eq!(get_available_max_process_id(), 0xFFFF_FFFF);
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn available_max_process_id_linux() {
+        assert_eq!(get_available_max_process_id(), 0x0040_0000);
+    }
+
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn available_max_process_id_macos() {
+        assert_eq!(get_available_max_process_id(), 99998);
+    }
+
+    #[test]
+    fn get_child_process_id_map_no_filter() {
+        let process_infos = vec![
+            ProcessInfo {
+                process_id: 1,
+                parent_process_id: 0,
+                name: "1".to_string(),
+            },
+            ProcessInfo {
+                process_id: 2,
+                parent_process_id: 1,
+                name: "2".to_string(),
+            },
+            ProcessInfo {
+                process_id: 3,
+                parent_process_id: 1,
+                name: "3".to_string(),
+            },
+        ];
+        let filter = |_: &ProcessInfo| false;
+        let map = get_child_process_id_map(&process_infos, filter);
+        assert_eq!(map.len(), 2);
+    }
+
+    #[test]
+    fn get_child_process_id_map_filter_process_id_and_parant_process_id_is_same() {
+        let process_infos = vec![
+            ProcessInfo {
+                process_id: 1,
+                parent_process_id: 1,
+                name: "1".to_string(),
+            },
+            ProcessInfo {
+                process_id: 2,
+                parent_process_id: 1,
+                name: "2".to_string(),
+            },
+            ProcessInfo {
+                process_id: 3,
+                parent_process_id: 1,
+                name: "3".to_string(),
+            },
+        ];
+        let filter =
+            |process_info: &ProcessInfo| process_info.process_id == process_info.parent_process_id;
+        let map = get_child_process_id_map(&process_infos, filter);
+        assert_eq!(map.len(), 1);
+    }
+
+    #[test]
+    fn get_process_info_map_test() {
+        let process_infos = vec![
+            ProcessInfo {
+                process_id: 1,
+                parent_process_id: 0,
+                name: "1".to_string(),
+            },
+            ProcessInfo {
+                process_id: 2,
+                parent_process_id: 1,
+                name: "2".to_string(),
+            },
+            ProcessInfo {
+                process_id: 3,
+                parent_process_id: 1,
+                name: "3".to_string(),
+            },
+        ];
+        let map = get_process_info_map(process_infos);
+        assert_eq!(map.len(), 3);
+    }
+
+    #[test]
+    fn get_process_ids_to_kill_test() {
+        let process_infos = vec![
+            ProcessInfo {
+                process_id: 1,
+                parent_process_id: 0,
+                name: "1".to_string(),
+            },
+            ProcessInfo {
+                process_id: 2,
+                parent_process_id: 1,
+                name: "2".to_string(),
+            },
+            ProcessInfo {
+                process_id: 3,
+                parent_process_id: 1,
+                name: "3".to_string(),
+            },
+        ];
+        let child_process_id_map =
+            get_child_process_id_map(&process_infos, |_: &ProcessInfo| false);
+        let config = Config::default();
+        let process_ids_to_kill = get_process_ids_to_kill(1, &child_process_id_map, &config);
+        assert_eq!(process_ids_to_kill, vec![1, 2, 3]);
+    }
+
+    #[test]
+    fn parse_kill_output_test() {
+        let mut process_info_map = ProcessInfoMap::new();
+        process_info_map.insert(
+            1,
+            ProcessInfo {
+                process_id: 1,
+                parent_process_id: 0,
+                name: "1".to_string(),
+            },
+        );
+        let kill_output = KillOutput::Killed { process_id: 1 };
+        let output = parse_kill_output(kill_output, &mut process_info_map).expect("output is None");
+        match output {
+            Output::Killed {
+                process_id,
+                parent_process_id,
+                name,
+            } => {
+                assert_eq!(process_id, 1);
+                assert_eq!(parent_process_id, 0);
+                assert_eq!(name, "1");
+            }
+            Output::MaybeAlreadyTerminated {
+                process_id: _process_id,
+                source: _source,
+            } => {
+                panic!("output is MaybeAlreadyTerminated");
+            }
+        }
+    }
+}
