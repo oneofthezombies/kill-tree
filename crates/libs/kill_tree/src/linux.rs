@@ -252,7 +252,13 @@ pub(crate) mod tokio {
                     continue;
                 }
             };
-            let process_info = get_process_info(process_id, entry.path()).await?;
+            let process_info = match get_process_info(process_id, entry.path()).await {
+                Ok(x) => x,
+                Err(e) => {
+                    debug!(error = ?e, "Failed to get process info");
+                    continue;
+                }
+            };
             process_infos.push(process_info);
         }
         Ok(process_infos)
