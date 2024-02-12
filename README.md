@@ -87,7 +87,7 @@ The Tokio runtime, written in Rust, allows me to work on __Zero cost task based 
 #### How to Install
 
 🚨 Please, see the __SCRIPT contents__. always SECURITY! 🚨  
-If there is a way to safely install the executable file, I would appreciate it if you could tell me!  \
+If there is a way to safely install the executable file, I would appreciate it if you could tell me!  
 
 Copy to clipboard and Paste to shell and Enter.  
 
