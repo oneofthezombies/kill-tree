@@ -129,6 +129,7 @@ mod tests {
     use super::*;
     use crate::get_available_max_process_id;
 
+    #[cfg(windows)]
     #[::tokio::test]
     async fn kill_tree_available_max_process_id_windows() {
         let target_process_id = get_available_max_process_id();
