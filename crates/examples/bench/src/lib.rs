@@ -26,6 +26,10 @@ pub struct Output {
     pub average_ms: u128,
 }
 
+/// Run a benchmark.
+///
+/// # Panics
+/// If the command fails to execute.
 pub fn run(count: u32, command_builder: fn(u32) -> Command) -> Output {
     let mut units = Vec::with_capacity(count as usize);
     for _ in 0..count {
