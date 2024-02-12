@@ -37,11 +37,13 @@ fn kill_tree_default() {
             .spawn()
             .unwrap();
         let target_process_id = child.id();
+        thread::sleep(Duration::from_secs(1));
         tx.send(target_process_id).unwrap();
         let _ = child.wait();
     });
     let target_process_id = rx.recv().unwrap();
     let outputs = kill_tree::blocking::kill_tree(target_process_id).expect("Failed to kill");
+    println!("{:?}", outputs);
     assert_eq!(outputs.len(), 1);
     let output = &outputs[0];
     match output {
@@ -73,6 +75,7 @@ fn kill_tree_with_config_sigkill() {
             .spawn()
             .unwrap();
         let target_process_id = child.id();
+        thread::sleep(Duration::from_secs(1));
         tx.send(target_process_id).unwrap();
         let _ = child.wait();
     });
@@ -83,6 +86,7 @@ fn kill_tree_with_config_sigkill() {
     };
     let outputs = kill_tree::blocking::kill_tree_with_config(target_process_id, &config)
         .expect("Failed to kill");
+    println!("{:?}", outputs);
     assert_eq!(outputs.len(), 1);
     let output = &outputs[0];
     match output {
@@ -112,8 +116,8 @@ fn kill_tree_with_config_include_target_false() {
             .arg(get_node_script_spawn_infinite_child())
             .spawn()
             .unwrap();
-        thread::sleep(Duration::from_secs(1));
         let target_process_id = child.id();
+        thread::sleep(Duration::from_secs(1));
         tx.send(target_process_id).unwrap();
         let _ = child.wait();
     });
@@ -124,6 +128,7 @@ fn kill_tree_with_config_include_target_false() {
     };
     let outputs = kill_tree::blocking::kill_tree_with_config(target_process_id, &config)
         .expect("Failed to kill");
+    println!("{:?}", outputs);
     assert!(!outputs.is_empty());
     let output = &outputs[0];
     match output {
@@ -141,6 +146,7 @@ fn kill_tree_with_config_include_target_false() {
     }
     thread::sleep(Duration::from_secs(1));
     let outputs = kill_tree::blocking::kill_tree(target_process_id).expect("Failed to kill");
+    println!("{:?}", outputs);
     assert_eq!(outputs.len(), 1);
     let output = &outputs[0];
     match output {
