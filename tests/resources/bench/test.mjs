@@ -1,6 +1,6 @@
 import { spawn } from "child_process";
 
-async function main() {
+async function test(appName) {
   const port = 50000;
   const elapseds = [];
   for (let i = 0; i < 1000; i++) {
@@ -14,12 +14,9 @@ async function main() {
       target.on("spawn", () => {
         console.log(`Spawned server ${target.pid}`);
         const start = Date.now();
-        const kill_tree = spawn("target/release/blocking.exe", [target.pid], {
+        const kill_tree = spawn(`target/release/${appName}`, [target.pid], {
           stdio: "inherit",
         });
-        // const kill_tree = spawn("taskkill", ["/T", "/F", "/PID", target.pid], {
-        //   stdio: "inherit",
-        // });
         kill_tree.on("exit", () => {
           const end = Date.now();
           const elapsed = end - start;
@@ -33,8 +30,21 @@ async function main() {
 
   const total = elapseds.reduce((a, b) => a + b, 0);
   const mean = total / elapseds.length;
-  console.log(`Total elapsed time: ${total}ms`);
-  console.log(`Mean elapsed time: ${mean}ms`);
+  return {
+    total,
+    mean,
+  };
+}
+
+async function main() {
+  const blockingResult = await test("kill_tree_blocking");
+  const tokioResult = await test("kill_tree_tokio");
+  console.log(
+    `blocking: total: ${blockingResult.total}ms, mean: ${blockingResult.mean}ms`
+  );
+  console.log(
+    `tokio: total: ${tokioResult.total}ms, mean: ${tokioResult.mean}ms`
+  );
 }
 
 main();
@@ -59,9 +69,5 @@ main();
 // Mean elapsed time: 6.291ms
 
 // macos
-// blocking
-// Total elapsed time: 3724ms
-// Mean elapsed time: 3.724ms
-// tokio
-// Total elapsed time: 4089ms
-// Mean elapsed time: 4.089ms
+// blocking: total: 3641ms, mean: 3.641ms
+// tokio: total: 4232ms, mean: 4.232ms
