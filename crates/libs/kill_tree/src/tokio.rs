@@ -24,7 +24,8 @@ use crate::windows as imp;
 ///
 /// #[tokio::main]
 /// async fn main() -> Result<()> {
-///     let _ = kill_tree(get_available_max_process_id()).await?;
+///     let target_process_id = get_available_max_process_id(); // Replace with your target process ID.
+///     let _ = kill_tree(target_process_id).await?;
 ///     Ok(())
 /// }
 /// ```
@@ -70,11 +71,12 @@ pub async fn kill_tree(process_id: ProcessId) -> Result<Outputs> {
 ///
 /// #[tokio::main]
 /// async fn main() -> Result<()> {
+///     let target_process_id = get_available_max_process_id(); // Replace with your target process ID.
 ///     let config = Config {
 ///         signal: String::from("SIGKILL"),
 ///         ..Default::default()
 ///     };
-///     let _ = kill_tree_with_config(get_available_max_process_id(), &config).await?;
+///     let _ = kill_tree_with_config(target_process_id, &config).await?;
 ///     Ok(())
 /// }
 /// ```
@@ -85,11 +87,12 @@ pub async fn kill_tree(process_id: ProcessId) -> Result<Outputs> {
 ///
 /// #[tokio::main]
 /// async fn main() -> Result<()> {
+///     let target_process_id = get_available_max_process_id(); // Replace with your target process ID.
 ///     let config = Config {
 ///         include_target: false,
 ///         ..Default::default()
 ///     };
-///     let _ = kill_tree_with_config(get_available_max_process_id(), &config).await?;
+///     let _ = kill_tree_with_config(target_process_id, &config).await?;
 ///     Ok(())
 /// }
 /// ```

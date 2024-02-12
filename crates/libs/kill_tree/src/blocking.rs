@@ -23,7 +23,8 @@ use crate::windows as imp;
 /// use kill_tree::{blocking::kill_tree, get_available_max_process_id, Result};
 ///
 /// fn main() -> Result<()> {
-///     let _ = kill_tree(get_available_max_process_id())?;
+///     let target_process_id = get_available_max_process_id(); // Replace with your target process ID.
+///     let _ = kill_tree(target_process_id)?;
 ///     Ok(())
 /// }
 /// ```
@@ -70,11 +71,12 @@ pub fn kill_tree(process_id: ProcessId) -> Result<Outputs> {
 /// };
 ///
 /// fn main() -> Result<()> {
+///     let target_process_id = get_available_max_process_id(); // Replace with your target process ID.
 ///     let config = Config {
 ///         signal: String::from("SIGKILL"),
 ///         ..Default::default()
 ///     };
-///     let _ = kill_tree_with_config(get_available_max_process_id(), &config)?;
+///     let _ = kill_tree_with_config(target_process_id, &config)?;
 ///     Ok(())
 /// }
 /// ```
@@ -86,11 +88,12 @@ pub fn kill_tree(process_id: ProcessId) -> Result<Outputs> {
 /// };
 ///
 /// fn main() -> Result<()> {
+///     let target_process_id = get_available_max_process_id(); // Replace with your target process ID.
 ///     let config = Config {
 ///         include_target: false,
 ///         ..Default::default()
 ///     };
-///     let _ = kill_tree_with_config(get_available_max_process_id(), &config)?;
+///     let _ = kill_tree_with_config(target_process_id, &config)?;
 ///     Ok(())
 /// }
 /// ```
