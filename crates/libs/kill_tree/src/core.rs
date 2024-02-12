@@ -166,10 +166,7 @@ mod tests {
             process_id: 0,
             reason: "reason".to_string(),
         };
-        assert_eq!(
-            format!("{}", error),
-            "Invalid process id: 0. Reason: reason"
-        );
+        assert_eq!(format!("{error}"), "Invalid process id: 0. Reason: reason");
     }
 
     #[test]
@@ -179,7 +176,7 @@ mod tests {
             source: u32::try_from(-1).unwrap_err(),
         };
         assert_eq!(
-            format!("{}", error),
+            format!("{error}"),
             "Invalid cast. Reason: reason. Source: out of range integral type conversion attempted"
         );
     }
@@ -193,7 +190,7 @@ mod tests {
             source: Some("source".parse::<u32>().unwrap_err()),
         };
         assert_eq!(
-            format!("{}", error),
+            format!("{error}"),
             "Invalid proc entry. Process id: 0. Path: /proc/0. Reason: reason. Source: Some(ParseIntError { kind: InvalidDigit })"
         );
     }
@@ -201,7 +198,7 @@ mod tests {
     #[test]
     fn error_display_io() {
         let error = Error::Io(std::io::Error::new(std::io::ErrorKind::Other, "error"));
-        assert_eq!(format!("{}", error), "I/O error: error");
+        assert_eq!(format!("{error}"), "I/O error: error");
     }
 
     #[cfg(windows)]
@@ -209,7 +206,7 @@ mod tests {
     fn error_display_windows() {
         let error = Error::Windows(windows::core::Error::OK);
         assert_eq!(
-            format!("{}", error),
+            format!("{error}"),
             "Windows error: The operation completed successfully. (0x00000000)"
         );
     }
@@ -218,14 +215,14 @@ mod tests {
     #[test]
     fn error_display_unix() {
         let error = Error::Unix(nix::Error::UnsupportedOperation);
-        assert_eq!(format!("{}", error), "Unix error: UnsupportedOperation");
+        assert_eq!(format!("{error}"), "Unix error: UnsupportedOperation");
     }
 
     #[test]
     fn from_io_error() {
         let error = std::io::Error::new(std::io::ErrorKind::Other, "error");
         let error = Error::from(error);
-        assert_eq!(format!("{}", error), "I/O error: error");
+        assert_eq!(format!("{error}"), "I/O error: error");
     }
 
     #[cfg(windows)]
@@ -234,7 +231,7 @@ mod tests {
         let error = windows::core::Error::OK;
         let error = Error::from(error);
         assert_eq!(
-            format!("{}", error),
+            format!("{error}"),
             "Windows error: The operation completed successfully. (0x00000000)"
         );
     }
@@ -244,13 +241,13 @@ mod tests {
     fn from_unix_error() {
         let error = nix::Error::UnsupportedOperation;
         let error = Error::from(error);
-        assert_eq!(format!("{}", error), "Unix error: UnsupportedOperation");
+        assert_eq!(format!("{error}"), "Unix error: UnsupportedOperation");
     }
 
     #[test]
     fn default_config() {
         let config = Config::default();
         assert_eq!(config.signal, "SIGTERM");
-        assert_eq!(config.include_target, true);
+        assert!(config.include_target);
     }
 }
