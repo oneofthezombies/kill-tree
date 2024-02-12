@@ -14,9 +14,12 @@ async function main() {
       target.on("spawn", () => {
         console.log(`Spawned server ${target.pid}`);
         const start = Date.now();
-        const kill_tree = spawn("target/release/tokio", [target.pid], {
+        const kill_tree = spawn("target/release/blocking.exe", [target.pid], {
           stdio: "inherit",
         });
+        // const kill_tree = spawn("taskkill", ["/T", "/F", "/PID", target.pid], {
+        //   stdio: "inherit",
+        // });
         kill_tree.on("exit", () => {
           const end = Date.now();
           const elapsed = end - start;
@@ -38,11 +41,14 @@ main();
 
 // windows
 // blocking
-// Total elapsed time: 16689ms
-// Mean elapsed time: 16.689ms
+// Total elapsed time: 13437ms
+// Mean elapsed time: 13.437ms
 // tokio
-// Total elapsed time: 17835ms
-// Mean elapsed time: 17.835ms
+// Total elapsed time: 13314ms
+// Mean elapsed time: 13.314ms
+// taskkill
+// Total elapsed time: 48045ms
+// Mean elapsed time: 48.045ms
 
 // linux
 // blocking
