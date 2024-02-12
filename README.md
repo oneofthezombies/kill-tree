@@ -89,7 +89,7 @@ Please, see the script contents. always SECURITY! Copy to clipboard and Paste to
 
 __Linux__
 
-> sudo curl -sSL https://raw.githubusercontent.com/oneofthezombies/kill-tree/main/installs/linux.sh | sh
+> sudo curl -sSL https://raw.githubusercontent.com/oneofthezombies/kill-tree/main/installs/linux.sh | sudo sh
 
 Below is an example of sending `SIGTERM` signals to a process with process ID `777`, and to all child processes.  
 

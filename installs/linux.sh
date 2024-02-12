@@ -20,6 +20,8 @@ fi
 temp_dir=$(mktemp -d)
 cd $temp_dir
 
+echo "If required, please enter your password for sudo access..."
+
 curl -L -s https://api.github.com/repos/oneofthezombies/kill-tree/releases/latest | \
     grep "kill-tree-linux-x86_64" | \
     grep "browser_download_url" | \
