@@ -133,7 +133,7 @@ mod tests {
     async fn kill_tree_available_max_process_id() {
         let target_process_id = get_available_max_process_id();
         let outputs = kill_tree(target_process_id).await.expect("Failed to kill");
-        assert!(outputs.len() > 0);
+        assert!(!outputs.is_empty());
         let output = &outputs[0];
         match output {
             crate::Output::Killed { .. } => {
@@ -156,7 +156,7 @@ mod tests {
         let outputs = kill_tree_with_config(target_process_id, &config)
             .await
             .expect("Failed to kill");
-        assert!(outputs.len() > 0);
+        assert!(!outputs.is_empty());
         let output = &outputs[0];
         match output {
             crate::Output::Killed { .. } => {
@@ -179,6 +179,6 @@ mod tests {
         let outputs = kill_tree_with_config(target_process_id, &config)
             .await
             .expect("Failed to kill");
-        assert!(outputs.len() == 0);
+        assert!(outputs.is_empty());
     }
 }
