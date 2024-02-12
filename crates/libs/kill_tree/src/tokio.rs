@@ -41,6 +41,7 @@ impl From<tokio::task::JoinError> for Error {
 /// #[cfg(target_os = "macos")]
 /// assert!(get_available_max_process_id() == 99998);
 /// ```
+#[must_use]
 pub fn get_available_max_process_id() -> u32 {
     crate::common::get_available_max_process_id()
 }
