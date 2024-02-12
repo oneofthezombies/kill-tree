@@ -1,5 +1,6 @@
 use crate::{
-    core::{Error, Killable, ProcessId, ProcessInfo, ProcessInfos, Result},
+    core::{Error, KillableBuildable, ProcessId, ProcessInfo, ProcessInfos, Result},
+    unix::Killer,
     Config,
 };
 use tracing::{debug, instrument};
@@ -148,13 +149,14 @@ pub(crate) struct KillerBuilder {}
 impl KillableBuildable for KillerBuilder {
     fn new_killable(&self, config: &Config) -> Result<Killer> {
         let killer_builder = crate::unix::KillerBuilder {};
-        killer_builder.new_killer(config)
+        killer_builder.new_killable(config)
     }
 }
 
 #[cfg(feature = "blocking")]
 pub(crate) mod blocking {
     use super::*;
+    use crate::core::blocking::ProcessInfosProvidable;
 
     #[instrument]
     fn get_process_info(process_id: ProcessId, path: std::path::PathBuf) -> Result<ProcessInfo> {
@@ -197,11 +199,20 @@ pub(crate) mod blocking {
         }
         Ok(process_infos)
     }
+
+    pub(crate) struct ProcessInfosProvider {}
+
+    impl ProcessInfosProvidable for ProcessInfosProvider {
+        fn get_process_infos(&self) -> Result<ProcessInfos> {
+            crate::linux::blocking::get_process_infos()
+        }
+    }
 }
 
 #[cfg(feature = "tokio")]
 pub(crate) mod tokio {
     use super::*;
+    use crate::core::tokio::ProcessInfosProvidable;
 
     #[instrument]
     async fn get_process_info(
@@ -239,5 +250,13 @@ pub(crate) mod tokio {
             process_infos.push(process_info);
         }
         Ok(process_infos)
+    }
+
+    pub(crate) struct ProcessInfosProvider {}
+
+    impl ProcessInfosProvidable for ProcessInfosProvider {
+        async fn get_process_infos(&self) -> Result<ProcessInfos> {
+            crate::linux::tokio::get_process_infos().await
+        }
     }
 }

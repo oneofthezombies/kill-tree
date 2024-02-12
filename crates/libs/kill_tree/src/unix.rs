@@ -1,5 +1,5 @@
 use crate::{
-    core::{KillOutput, Killable, ProcessId, Result},
+    core::{KillOutput, Killable, KillableBuildable, ProcessId, Result},
     Config, Error,
 };
 use tracing::instrument;
