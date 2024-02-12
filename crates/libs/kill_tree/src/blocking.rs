@@ -124,3 +124,58 @@ pub fn kill_tree_with_config(process_id: ProcessId, config: &Config) -> Result<O
     let process_infos = process_infos_provider.get_process_infos()?;
     crate::common::kill_tree_internal(process_id, config, process_infos)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::get_available_max_process_id;
+
+    #[test]
+    fn kill_tree_available_max_process_id() {
+        let target_process_id = get_available_max_process_id();
+        let result = kill_tree(target_process_id).expect("Failed to kill");
+        assert_eq!(result.len(), 1);
+        let output = &result[0];
+        match output {
+            crate::Output::Killed { .. } => {
+                panic!("This should not happen");
+            }
+            crate::Output::MaybeAlreadyTerminated { process_id, source } => {
+                assert_eq!(*process_id, target_process_id);
+                assert_eq!(source.to_string(), "Unix error: ESRCH: No such process");
+            }
+        }
+    }
+
+    #[test]
+    fn kill_tree_with_config_sigkill_available_max_process_id() {
+        let target_process_id = get_available_max_process_id();
+        let config = Config {
+            signal: String::from("SIGKILL"),
+            ..Default::default()
+        };
+        let result = kill_tree_with_config(target_process_id, &config).expect("Failed to kill");
+        assert_eq!(result.len(), 1);
+        let output = &result[0];
+        match output {
+            crate::Output::Killed { .. } => {
+                panic!("This should not happen");
+            }
+            crate::Output::MaybeAlreadyTerminated { process_id, source } => {
+                assert_eq!(*process_id, target_process_id);
+                assert_eq!(source.to_string(), "Unix error: ESRCH: No such process");
+            }
+        }
+    }
+
+    #[test]
+    fn kill_tree_with_config_include_target_false_available_max_process_id() {
+        let target_process_id = get_available_max_process_id();
+        let config = Config {
+            include_target: false,
+            ..Default::default()
+        };
+        let result = kill_tree_with_config(target_process_id, &config).expect("Failed to kill");
+        assert_eq!(result.len(), 0);
+    }
+}

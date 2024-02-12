@@ -123,3 +123,62 @@ pub async fn kill_tree_with_config(process_id: ProcessId, config: &Config) -> Re
     let process_infos = process_infos_provider.get_process_infos().await?;
     crate::common::kill_tree_internal(process_id, config, process_infos)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::get_available_max_process_id;
+
+    #[::tokio::test]
+    async fn kill_tree_available_max_process_id() {
+        let target_process_id = get_available_max_process_id();
+        let outputs = kill_tree(target_process_id).await.expect("Failed to kill");
+        assert!(outputs.len() > 0);
+        let output = &outputs[0];
+        match output {
+            crate::Output::Killed { .. } => {
+                panic!("This should not happen");
+            }
+            crate::Output::MaybeAlreadyTerminated { process_id, source } => {
+                assert_eq!(*process_id, target_process_id);
+                assert_eq!(source.to_string(), "Unix error: ESRCH: No such process");
+            }
+        }
+    }
+
+    #[::tokio::test]
+    async fn kill_tree_with_config_sigkill_available_max_process_id() {
+        let target_process_id = get_available_max_process_id();
+        let config = Config {
+            signal: String::from("SIGKILL"),
+            ..Default::default()
+        };
+        let outputs = kill_tree_with_config(target_process_id, &config)
+            .await
+            .expect("Failed to kill");
+        assert!(outputs.len() > 0);
+        let output = &outputs[0];
+        match output {
+            crate::Output::Killed { .. } => {
+                panic!("This should not happen");
+            }
+            crate::Output::MaybeAlreadyTerminated { process_id, source } => {
+                assert_eq!(*process_id, target_process_id);
+                assert_eq!(source.to_string(), "Unix error: ESRCH: No such process");
+            }
+        }
+    }
+
+    #[::tokio::test]
+    async fn kill_tree_with_config_include_target_false_available_max_process_id() {
+        let target_process_id = get_available_max_process_id();
+        let config = Config {
+            include_target: false,
+            ..Default::default()
+        };
+        let outputs = kill_tree_with_config(target_process_id, &config)
+            .await
+            .expect("Failed to kill");
+        assert!(outputs.len() == 0);
+    }
+}
