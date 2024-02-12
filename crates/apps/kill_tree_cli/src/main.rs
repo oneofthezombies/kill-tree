@@ -1,8 +1,15 @@
+use std::io;
+
 use clap::{
     builder::{styling::AnsiColor, Styles},
     command, value_parser, ArgAction, Parser,
 };
 use kill_tree::{blocking::kill_tree_with_config, Config};
+use tracing::{
+    subscriber::{self, SetGlobalDefaultError},
+    Level,
+};
+use tracing_subscriber::FmtSubscriber;
 
 fn get_styles() -> Styles {
     Styles::styled()
@@ -31,12 +38,23 @@ struct Cli {
     #[arg(help = "No logs are output.")]
     #[arg(action = ArgAction::SetTrue)]
     quiet: bool,
+
+    #[arg(long)]
+    #[arg(help = "Set the log level. Available levels: error, warn, info, debug, trace")]
+    #[arg(default_value = "warn")]
+    #[arg(value_parser = value_parser!(Level))]
+    log_level: Level,
+}
+
+fn init_log(level: Level) -> Result<(), SetGlobalDefaultError> {
+    subscriber::set_global_default(FmtSubscriber::builder().with_max_level(level).finish())
 }
 
 fn main() -> kill_tree::Result<()> {
     let cli = Cli::parse();
     let do_print = !cli.quiet;
     if do_print {
+        init_log(cli.log_level).map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
         println!(
             "Killing all of target process and its children recursively. process id: {}, signal: {}",
             cli.process_id, cli.signal
