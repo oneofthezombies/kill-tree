@@ -13,7 +13,7 @@ pub(crate) fn validate_process_id(process_id: ProcessId) -> Result<()> {
     crate::unix::validate_process_id(process_id, AVAILABLE_MAX_PROCESS_ID)
 }
 
-fn parse_status(process_id: ProcessId, status_path: String, status: String) -> Result<ProcessInfo> {
+fn parse_status(process_id: ProcessId, status_path: String, status: &str) -> Result<ProcessInfo> {
     let mut parent_process_id = None;
     let mut name = None;
     for line in status.lines() {
@@ -170,7 +170,7 @@ pub(crate) mod blocking {
                 return Err(e.into());
             }
         };
-        parse_status(process_id, status_path.display().to_string(), status)
+        parse_status(process_id, status_path.display().to_string(), &status)
     }
 
     #[instrument]
@@ -232,7 +232,7 @@ pub(crate) mod tokio {
                 return Err(Error::Io(e));
             }
         };
-        parse_status(process_id, status_path.display().to_string(), status)
+        parse_status(process_id, status_path.display().to_string(), &status)
     }
 
     #[instrument]
