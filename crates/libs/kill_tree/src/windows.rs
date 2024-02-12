@@ -183,26 +183,3 @@ pub(crate) mod tokio {
         crate::windows::get_process_infos()
     }
 }
-
-// #[cfg(test)]
-// mod tests {
-//     #[tokio::test]
-//     async fn process_id_0() {
-//         let result = kill_tree(0).await;
-//         assert!(result.is_err());
-//         assert_eq!(
-//             result.unwrap_err().to_string(),
-//             "Not allowed to kill System Idle Process. process id: 0"
-//         );
-//     }
-
-//     #[tokio::test]
-//     async fn process_id_4() {
-//         let result = kill_tree(4).await;
-//         assert!(result.is_err());
-//         assert_eq!(
-//             result.unwrap_err().to_string(),
-//             "Not allowed to kill System. process id: 4"
-//         );
-//     }
-// }

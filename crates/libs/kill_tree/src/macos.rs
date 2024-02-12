@@ -151,22 +151,6 @@ pub(crate) mod tokio {
     }
 }
 
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
-//     use crate::kill_tree;
-
-//     #[tokio::test]
-//     async fn process_id_max_plus_1() {
-//         let result = kill_tree(AVAILABLE_MAX_PROCESS_ID + 1).await;
-//         assert!(result.is_err());
-//         assert_eq!(
-//             result.unwrap_err().to_string(),
-//             "Process id is too large. process id: 99999, available max process id: 99998"
-//         );
-//     }
-// }
-
 #[allow(warnings)]
 #[allow(clippy::all)]
 #[allow(clippy::pedantic)]
