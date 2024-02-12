@@ -187,3 +187,99 @@ pub(crate) mod tokio {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn validate_process_id_system_idle_process() {
+        let process_id = SYSTEM_IDLE_PROCESS_PROCESS_ID;
+        let result = validate_process_id(process_id);
+        assert!(result.is_err());
+        assert_eq!(
+            format!("{}", result.unwrap_err()),
+            format!(
+                "Invalid process id: {process_id}. Reason: Not allowed to kill System Idle Process",
+                process_id = process_id
+            )
+        );
+    }
+
+    #[test]
+    fn validate_process_id_system() {
+        let process_id = SYSTEM_PROCESS_ID;
+        let result = validate_process_id(process_id);
+        assert!(result.is_err());
+        assert_eq!(
+            format!("{}", result.unwrap_err()),
+            format!(
+                "Invalid process id: {process_id}. Reason: Not allowed to kill System",
+                process_id = process_id
+            )
+        );
+    }
+
+    #[test]
+    fn validate_process_id_other() {
+        let process_id = 1;
+        let result = validate_process_id(process_id);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn validate_process_id_available_max() {
+        let process_id = AVAILABLE_MAX_PROCESS_ID;
+        let result = validate_process_id(process_id);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn child_process_id_map_filter_same() {
+        let process_info = ProcessInfo {
+            process_id: 1,
+            parent_process_id: 1,
+            name: "1".to_string(),
+        };
+        assert_eq!(child_process_id_map_filter(&process_info), true);
+    }
+
+    #[test]
+    fn child_process_id_map_filter_not_same() {
+        let process_info = ProcessInfo {
+            process_id: 1,
+            parent_process_id: 0,
+            name: "1".to_string(),
+        };
+        assert_eq!(child_process_id_map_filter(&process_info), false);
+    }
+
+    #[test]
+    fn kill_available_max_process_id() {
+        let target_process_id = AVAILABLE_MAX_PROCESS_ID;
+        let result = kill(target_process_id);
+        assert!(result.is_ok());
+        let result = result.unwrap();
+        match result {
+            KillOutput::MaybeAlreadyTerminated { process_id, source } => {
+                assert_eq!(target_process_id, process_id);
+                match source {
+                    crate::Error::Windows(e) => {
+                        assert_eq!(e.code(), E_INVALIDARG);
+                        assert_eq!(e.message(), "The parameter is incorrect.");
+                    }
+                    _ => panic!("Unexpected source: {source:?}",),
+                }
+            }
+            _ => panic!("Unexpected result: {result:?}",),
+        }
+    }
+
+    #[test]
+    fn get_process_infos_test() {
+        let result = get_process_infos();
+        assert!(result.is_ok());
+        let process_infos = result.unwrap();
+        assert!(process_infos.len() > 2);
+    }
+}

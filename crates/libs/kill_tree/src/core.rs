@@ -98,6 +98,7 @@ pub(crate) trait KillableBuildable {
     fn new_killable(&self, config: &Config) -> Result<impl Killable>;
 }
 
+#[derive(Debug)]
 pub(crate) enum KillOutput {
     Killed {
         process_id: ProcessId,
