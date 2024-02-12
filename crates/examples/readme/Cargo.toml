@@ -4,7 +4,8 @@ version = "0.0.0"
 edition.workspace = true
 
 [dependencies]
-kill_tree = { path = "../../libs/kill_tree" }
+kill_tree = { path = "../../libs/kill_tree", features = ["tokio"] }
+tokio = { version = "1.36.0", features = ["full"] }
 
 [[bin]]
 name = "kill_tree"
@@ -13,3 +14,7 @@ path = "src/kill_tree.rs"
 [[bin]]
 name = "kill_tree_sigkill"
 path = "src/kill_tree_sigkill.rs"
+
+[[bin]]
+name = "kill_tree_tokio"
+path = "src/kill_tree_tokio.rs"
