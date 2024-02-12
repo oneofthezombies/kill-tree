@@ -5,17 +5,17 @@
 | App | Kill Count | Total (ms) | Average (ms) | Faster Than Taskkill |
 | --- | --- | --- | --- | --- | 
 | Kill Tree | 100 | 1616 | 16 | 3.8x |
-| taskkill | 100 | 6167 | 61 | 1x |
+| Taskkill | 100 | 6167 | 61 | 1x |
 
 | App | Kill Count | Total (ms) | Average (ms) | Faster Than Taskkill |
 | --- | --- | --- | --- | --- | 
 | Kill Tree | 200 | 2635 | 13 | 5x |
-| taskkill | 200 | 13425 | 67 | 1x |
+| Taskkill | 200 | 13425 | 67 | 1x |
 
 | App | Kill Count | Total (ms) | Average (ms) | Faster Than Taskkill |
 | --- | --- | --- | --- | --- | 
 | Kill Tree | 300 | 4427 | 14 | 5x |
-| taskkill | 300 | 22351 | 74 | 1x |
+| Taskkill | 300 | 22351 | 74 | 1x |
 
 ## Executable
 
