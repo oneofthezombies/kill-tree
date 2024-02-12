@@ -95,7 +95,7 @@ pub fn kill_tree(process_id: ProcessId) -> Result<Outputs> {
 /// }
 /// ```
 ///
-/// /// # Errors
+/// # Errors
 ///
 /// ## `InvalidProcessId`
 /// Returns the process ID of the kernel or system, or if greater than the available maximum process ID.  
