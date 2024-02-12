@@ -1,8 +1,12 @@
-use kill_tree::{blocking::kill_tree, Output, Result};
+use kill_tree::{blocking::kill_tree_with_config, Config, Output, Result};
 
 fn main() -> Result<()> {
     let process_id = 777;
-    let outputs = kill_tree(process_id)?;
+    let config = Config {
+        signal: "SIGKILL".to_string(),
+        ..Default::default()
+    };
+    let outputs = kill_tree_with_config(process_id, &config)?;
     for (index, output) in outputs.iter().enumerate() {
         match output {
             Output::Killed {
