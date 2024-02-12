@@ -1,3 +1,4 @@
+// crates/examples/readme/src/kill_tree_sigkill.rs
 use kill_tree::{blocking::kill_tree_with_config, Config, Result};
 
 fn main() -> Result<()> {

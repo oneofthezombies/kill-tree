@@ -1,3 +1,4 @@
+// crates/examples/readme/src/kill_tree.rs
 use kill_tree::{blocking::kill_tree, Output, Result};
 
 fn main() -> Result<()> {

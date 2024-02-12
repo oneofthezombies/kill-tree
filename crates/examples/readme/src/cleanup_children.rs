@@ -1,3 +1,4 @@
+// crates/examples/readme/src/cleanup_children.rs
 use kill_tree::{blocking::kill_tree_with_config, Config};
 use std::sync::mpsc::channel;
 
