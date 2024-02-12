@@ -93,13 +93,19 @@ Copy to clipboard and Paste to shell and Enter.
 
 __Windows__
 
+On `Pwsh` (a.k.a. `PowerShell`)
+
 > iwr https://raw.githubusercontent.com/oneofthezombies/kill-tree/main/installs/windows.ps1 -UseBasicParsing | iex
 
 __Linux__
 
+On any `sh`
+
 > sudo curl -sSL https://raw.githubusercontent.com/oneofthezombies/kill-tree/main/installs/linux.sh | sudo sh
 
 __Macos__
+
+On any `sh`
 
 > sudo curl -sSL https://raw.githubusercontent.com/oneofthezombies/kill-tree/main/installs/macos.sh | sudo sh
 
