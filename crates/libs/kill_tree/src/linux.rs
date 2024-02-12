@@ -175,9 +175,9 @@ pub(crate) mod blocking {
 
     #[instrument]
     pub(crate) fn get_process_infos() -> Result<ProcessInfos> {
-        let mut read_dir = std::fs::read_dir("/proc")?;
+        let read_dir = std::fs::read_dir("/proc")?;
         let mut process_infos = ProcessInfos::new();
-        while let Some(entry_result) = read_dir.next() {
+        for entry_result in read_dir {
             let entry = entry_result?;
             let file_name = entry.file_name();
             let Some(file_name) = file_name.to_str() else {
