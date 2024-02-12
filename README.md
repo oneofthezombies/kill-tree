@@ -25,7 +25,7 @@ This project was inspired by [node-tree-kill](https://github.com/pkrumins/node-t
 
 The reason I created this is because I have a case where I need to stop grandchild processes.  
 This is because the way to kill a grandchild process on the Windows platform is to use the `Win32` API to determine the process relationship and either kill them all (Kill Tree's implementation) or call the `taskkill` program.  
-Even my program is more than __3-5x faster__ than `taskkill`. (see [bench](docs/bench.md))  
+Even my program is more than __3-5x faster__ than `taskkill`. (see [bench](/docs/bench.md))  
 
 ---
 
