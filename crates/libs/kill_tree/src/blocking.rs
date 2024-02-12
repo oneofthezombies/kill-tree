@@ -74,7 +74,16 @@ pub fn get_available_max_process_id() -> u32 {
 /// This is an error that should not occur under normal circumstances.  
 ///
 /// ## `InvalidProcEntry`
-/// TODO
+/// Returned when inquiry, or parsing within the Linux `/proc/` path fails.  
+///
+/// ## `Io`
+/// Returned when access within the Linux `/proc/` path fails.  
+///
+/// ## `Windows`
+/// Returned when the `Win32` API used internally fails.  
+///
+/// ## `Unix`
+/// Returned when the `libc` API used internally fails.  
 pub fn kill_tree(process_id: ProcessId) -> Result<Outputs> {
     kill_tree_with_config(process_id, &Config::default())
 }

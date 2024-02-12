@@ -162,7 +162,7 @@ pub(crate) mod blocking {
         let status = match std::fs::read_to_string(&status_path) {
             Ok(x) => x,
             Err(e) => {
-                return Err(Error::Io(e));
+                return Err(e.into());
             }
         };
         parse_status(process_id, status_path.display().to_string(), status)

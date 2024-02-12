@@ -19,8 +19,6 @@ pub enum Error {
     Windows(windows::core::Error),
     #[cfg(unix)]
     Unix(nix::Error),
-    #[cfg(feature = "tokio")]
-    TokioJoin(::tokio::task::JoinError),
 }
 
 impl std::fmt::Display for Error {
@@ -46,8 +44,6 @@ impl std::fmt::Display for Error {
             Error::Windows(e) => write!(f, "Windows error: {e}"),
             #[cfg(unix)]
             Error::Unix(e) => write!(f, "Unix error: {e}"),
-            #[cfg(feature = "tokio")]
-            Error::TokioJoin(e) => write!(f, "Tokio join error: {e}"),
         }
     }
 }
@@ -139,13 +135,7 @@ pub(crate) mod blocking {
 
 #[cfg(feature = "tokio")]
 pub(crate) mod tokio {
-    use super::{Error, ProcessInfos, Result};
-
-    impl From<::tokio::task::JoinError> for Error {
-        fn from(e: ::tokio::task::JoinError) -> Self {
-            Error::TokioJoin(e)
-        }
-    }
+    use super::{ProcessInfos, Result};
 
     pub(crate) trait ProcessInfosProvidable {
         async fn get_process_infos(&self) -> Result<ProcessInfos>;
