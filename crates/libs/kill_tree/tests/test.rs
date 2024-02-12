@@ -50,6 +50,7 @@ fn kill_tree_default() {
         } => {
             assert_eq!(*process_id, target_process_id);
             assert_eq!(*parent_process_id, std::process::id());
+            println!("name: {}", name);
             assert!(name.starts_with("node"));
         }
         kill_tree::Output::MaybeAlreadyTerminated { .. } => {

@@ -83,7 +83,7 @@ fn build(target: &str) {
 }
 
 fn test() {
-    run!("cargo test --workspace --all-targets --all-features");
+    run!("cargo test --workspace --all-targets --all-features -- --nocapture");
 }
 
 fn bench() {
