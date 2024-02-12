@@ -162,7 +162,10 @@ pub(crate) mod blocking {
     use crate::core::blocking::ProcessInfosProvidable;
 
     #[instrument]
-    fn get_process_info(process_id: ProcessId, path: std::path::PathBuf) -> Result<ProcessInfo> {
+    pub(crate) fn get_process_info(
+        process_id: ProcessId,
+        path: std::path::PathBuf,
+    ) -> Result<ProcessInfo> {
         let status_path = parse_proc_entry(process_id, &path)?;
         let status = match std::fs::read_to_string(&status_path) {
             Ok(x) => x,
@@ -221,7 +224,7 @@ pub(crate) mod tokio {
     use crate::core::tokio::ProcessInfosProvidable;
 
     #[instrument]
-    async fn get_process_info(
+    pub(crate) async fn get_process_info(
         process_id: ProcessId,
         path: std::path::PathBuf,
     ) -> Result<ProcessInfo> {
@@ -270,5 +273,161 @@ pub(crate) mod tokio {
         async fn get_process_infos(&self) -> Result<ProcessInfos> {
             crate::linux::tokio::get_process_infos().await
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn validate_process_id_kernel_process_id() {
+        let process_id = 0;
+        let result = validate_process_id(process_id);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn validate_process_id_init_process_id() {
+        let process_id = 1;
+        let result = validate_process_id(process_id);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn validate_process_id_available_max_process_id() {
+        let process_id = AVAILABLE_MAX_PROCESS_ID;
+        validate_process_id(process_id).expect("Failed to validate process id");
+    }
+
+    #[test]
+    fn parse_status_kernel_process_id() {
+        let process_id = 0;
+        let status_path = "/proc/0/status".to_string();
+        let status = "Name: init\nPPid: 0\n".to_string();
+        let process_info =
+            parse_status(process_id, status_path, &status).expect("Failed to parse status");
+        assert_eq!(process_info.process_id, process_id);
+        assert_eq!(process_info.parent_process_id, 0);
+        assert_eq!(process_info.name, "init");
+    }
+
+    #[test]
+    fn parse_proc_entry_not_dir() {
+        let process_id = 0;
+        let path = std::path::PathBuf::from("/proc/0/status");
+        let result = parse_proc_entry(process_id, &path);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn parse_proc_entry_failed_to_get_file_name() {
+        let process_id = 0;
+        let path = std::path::PathBuf::from("/proc/");
+        let result = parse_proc_entry(process_id, &path);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn parse_proc_entry_failed_to_parse_process_id() {
+        let process_id = 0;
+        let path = std::path::PathBuf::from("/proc/invalid");
+        let result = parse_proc_entry(process_id, &path);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn parse_proc_entry_status_path_does_not_exist() {
+        let process_id = 0;
+        let path = std::path::PathBuf::from("/proc/0");
+        let result = parse_proc_entry(process_id, &path);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn parse_proc_entry_status_path_is_not_file() {
+        let process_id = 0;
+        let path = std::path::PathBuf::from("/proc/0");
+        let result = parse_proc_entry(process_id, &path);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn parse_proc_entry_1() {
+        let process_id = 1;
+        let path = std::path::PathBuf::from("/proc/1");
+        let status_path = parse_proc_entry(process_id, &path).expect("Failed to parse proc entry");
+        assert_eq!(status_path, std::path::PathBuf::from("/proc/1/status"));
+    }
+
+    #[test]
+    fn parse_proc_entry_1_and_status() {
+        let process_id = 1;
+        let path = std::path::PathBuf::from("/proc/1");
+        let status_path = parse_proc_entry(process_id, &path).expect("Failed to parse proc entry");
+        let status = match std::fs::read_to_string(&status_path) {
+            Ok(x) => x,
+            Err(e) => {
+                panic!("Failed to read status. error: {}", e);
+            }
+        };
+        let process_info = parse_status(process_id, status_path.display().to_string(), &status)
+            .expect("Failed to parse status");
+        assert_eq!(process_info.process_id, process_id);
+        assert_eq!(process_info.parent_process_id, 0);
+        assert_eq!(process_info.name, "systemd");
+    }
+
+    #[test]
+    fn child_process_id_map_filter_false() {
+        let process_info = ProcessInfo {
+            process_id: 0,
+            parent_process_id: 0,
+            name: "init".to_string(),
+        };
+        assert!(!child_process_id_map_filter(&process_info));
+    }
+
+    #[cfg(feature = "blocking")]
+    #[test]
+    fn get_process_info_blocking() {
+        let process_id = 1;
+        let path = std::path::PathBuf::from("/proc/1");
+        let process_info =
+            blocking::get_process_info(process_id, path).expect("Failed to get process info");
+        assert_eq!(process_info.process_id, process_id);
+        assert_eq!(process_info.parent_process_id, 0);
+        assert_eq!(process_info.name, "systemd");
+    }
+
+    #[cfg(feature = "blocking")]
+    #[test]
+    fn get_process_infos_blocking() {
+        let process_infos = blocking::get_process_infos().expect("Failed to get process infos");
+        assert!(process_infos.len() > 1);
+    }
+
+    #[cfg(feature = "tokio")]
+    #[test]
+    fn get_process_info_tokio() {
+        let rt = ::tokio::runtime::Runtime::new().unwrap();
+        let process_id = 1;
+        let path = std::path::PathBuf::from("/proc/1");
+        let process_info = rt
+            .block_on(tokio::get_process_info(process_id, path))
+            .expect("Failed to get process info");
+        assert_eq!(process_info.process_id, process_id);
+        assert_eq!(process_info.parent_process_id, 0);
+        assert_eq!(process_info.name, "systemd");
+    }
+
+    #[cfg(feature = "tokio")]
+    #[test]
+    fn get_process_infos_tokio() {
+        let rt = ::tokio::runtime::Runtime::new().unwrap();
+        let process_infos = rt
+            .block_on(tokio::get_process_infos())
+            .expect("Failed to get process infos");
+        assert!(process_infos.len() > 1);
     }
 }
