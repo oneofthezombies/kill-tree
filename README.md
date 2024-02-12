@@ -83,6 +83,14 @@ The Tokio runtime, written in Rust, allows me to work on __Zero cost task based 
 
 ### Using as CLI Tool
 
+#### How to Install
+
+Copy to clipboard and Paste to shell and enter.  
+
+##### Linux
+
+> sudo curl -sSL https://raw.githubusercontent.com/oneofthezombies/kill-tree/main/installs/linux.sh | sh
+
 Below is an example of sending `SIGTERM` signals to a process with process ID `777`, and to all child processes.  
 
 ℹ️ _On Windows platforms, all signals including SIGTERM and SIGKILL are ignored._
