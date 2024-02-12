@@ -95,7 +95,6 @@ fn pre_push() {
     clippy();
     fmt();
     test();
-    bench();
 }
 
 fn init_log() {
