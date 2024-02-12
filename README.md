@@ -6,8 +6,9 @@
 It is written in Rust.  
 If you use this as a Rust library, it supports both synchronous and asynchronous implementation!  
 Asynchronous implementation is powerd by [Tokio](https://github.com/tokio-rs/tokio).  
-
 This project was inspired by [node-tree-kill](https://github.com/pkrumins/node-tree-kill). Thank you. 🤟  
+
+I would really APPRECIATE it if you could star(⭐) this repository! [Click to jump to the repository.](https://github.com/oneofthezombies/kill-tree)  
 
 [![Build Status][actions-badge]][actions-url]
 [![Crates.io][crates-badge]][crates-url]
