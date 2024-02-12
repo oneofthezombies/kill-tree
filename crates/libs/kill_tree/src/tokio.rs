@@ -130,7 +130,28 @@ mod tests {
     use crate::get_available_max_process_id;
 
     #[::tokio::test]
-    async fn kill_tree_available_max_process_id() {
+    async fn kill_tree_available_max_process_id_windows() {
+        let target_process_id = get_available_max_process_id();
+        let outputs = kill_tree(target_process_id).await.expect("Failed to kill");
+        assert!(!outputs.is_empty());
+        let output = &outputs[0];
+        match output {
+            crate::Output::Killed { .. } => {
+                panic!("This should not happen");
+            }
+            crate::Output::MaybeAlreadyTerminated { process_id, source } => {
+                assert_eq!(*process_id, target_process_id);
+                assert_eq!(
+                    source.to_string(),
+                    "Windows error: The parameter is incorrect. (0x80070057)"
+                );
+            }
+        }
+    }
+
+    #[cfg(unix)]
+    #[::tokio::test]
+    async fn kill_tree_available_max_process_id_unix() {
         let target_process_id = get_available_max_process_id();
         let outputs = kill_tree(target_process_id).await.expect("Failed to kill");
         assert!(!outputs.is_empty());
@@ -146,8 +167,36 @@ mod tests {
         }
     }
 
+    #[cfg(windows)]
     #[::tokio::test]
-    async fn kill_tree_with_config_sigkill_available_max_process_id() {
+    async fn kill_tree_with_config_sigkill_available_max_process_id_windows() {
+        let target_process_id = get_available_max_process_id();
+        let config = Config {
+            signal: String::from("SIGKILL"),
+            ..Default::default()
+        };
+        let outputs = kill_tree_with_config(target_process_id, &config)
+            .await
+            .expect("Failed to kill");
+        assert!(!outputs.is_empty());
+        let output = &outputs[0];
+        match output {
+            crate::Output::Killed { .. } => {
+                panic!("This should not happen");
+            }
+            crate::Output::MaybeAlreadyTerminated { process_id, source } => {
+                assert_eq!(*process_id, target_process_id);
+                assert_eq!(
+                    source.to_string(),
+                    "Windows error: The parameter is incorrect. (0x80070057)"
+                );
+            }
+        }
+    }
+
+    #[cfg(unix)]
+    #[::tokio::test]
+    async fn kill_tree_with_config_sigkill_available_max_process_id_unix() {
         let target_process_id = get_available_max_process_id();
         let config = Config {
             signal: String::from("SIGKILL"),

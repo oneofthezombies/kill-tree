@@ -130,8 +130,30 @@ mod tests {
     use super::*;
     use crate::get_available_max_process_id;
 
+    #[cfg(windows)]
     #[test]
-    fn kill_tree_available_max_process_id() {
+    fn kill_tree_available_max_process_id_windows() {
+        let target_process_id = get_available_max_process_id();
+        let result = kill_tree(target_process_id).expect("Failed to kill");
+        assert_eq!(result.len(), 1);
+        let output = &result[0];
+        match output {
+            crate::Output::Killed { .. } => {
+                panic!("This should not happen");
+            }
+            crate::Output::MaybeAlreadyTerminated { process_id, source } => {
+                assert_eq!(*process_id, target_process_id);
+                assert_eq!(
+                    source.to_string(),
+                    "Windows error: The parameter is incorrect. (0x80070057)"
+                );
+            }
+        }
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn kill_tree_available_max_process_id_unix() {
         let target_process_id = get_available_max_process_id();
         let result = kill_tree(target_process_id).expect("Failed to kill");
         assert_eq!(result.len(), 1);
@@ -147,8 +169,34 @@ mod tests {
         }
     }
 
+    #[cfg(windows)]
     #[test]
-    fn kill_tree_with_config_sigkill_available_max_process_id() {
+    fn kill_tree_with_config_sigkill_available_max_process_id_windows() {
+        let target_process_id = get_available_max_process_id();
+        let config = Config {
+            signal: String::from("SIGKILL"),
+            ..Default::default()
+        };
+        let result = kill_tree_with_config(target_process_id, &config).expect("Failed to kill");
+        assert_eq!(result.len(), 1);
+        let output = &result[0];
+        match output {
+            crate::Output::Killed { .. } => {
+                panic!("This should not happen");
+            }
+            crate::Output::MaybeAlreadyTerminated { process_id, source } => {
+                assert_eq!(*process_id, target_process_id);
+                assert_eq!(
+                    source.to_string(),
+                    "Windows error: The parameter is incorrect. (0x80070057)"
+                );
+            }
+        }
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn kill_tree_with_config_sigkill_available_max_process_id_unix() {
         let target_process_id = get_available_max_process_id();
         let config = Config {
             signal: String::from("SIGKILL"),
