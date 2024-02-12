@@ -86,6 +86,7 @@ The Tokio runtime, written in Rust, allows me to work on __Zero cost task based 
 #### How to Install
 
 Copy to clipboard and Paste to shell and enter.  
+Please, see the script contents. always SECURITY!
 
 ##### Linux
 
