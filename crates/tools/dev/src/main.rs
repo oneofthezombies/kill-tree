@@ -42,15 +42,15 @@ fn init() {
 }
 
 fn check() {
-    run!("cargo check --workspace");
+    run!("cargo check --workspace --all-targets --all-features");
 }
 
 fn clippy() {
-    run!("cargo clippy -- -D clippy::all -D clippy::pedantic");
+    run!("cargo clippy --workspace --all-targets --all-features -- -D clippy::all -D clippy::pedantic");
 }
 
 fn fmt() {
-    run!("cargo fmt -- --check");
+    run!("argo fmt --all --check");
 }
 
 fn build(target: &str) {
@@ -77,7 +77,6 @@ fn build(target: &str) {
         }
 
         let mut output_file = std::fs::OpenOptions::new()
-            .write(true)
             .append(true)
             .open(output_path)
             .unwrap();
