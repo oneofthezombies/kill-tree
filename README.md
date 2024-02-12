@@ -91,6 +91,10 @@ __Linux__
 
 > sudo curl -sSL https://raw.githubusercontent.com/oneofthezombies/kill-tree/main/installs/linux.sh | sudo sh
 
+__Macos__
+
+> sudo curl -sSL https://raw.githubusercontent.com/oneofthezombies/kill-tree/main/installs/macos.sh | sudo sh
+
 Below is an example of sending `SIGTERM` signals to a process with process ID `777`, and to all child processes.  
 
 ℹ️ _On Windows platforms, all signals including SIGTERM and SIGKILL are ignored._
