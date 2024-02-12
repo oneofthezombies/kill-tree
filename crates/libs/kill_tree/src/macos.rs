@@ -129,7 +129,7 @@ pub(crate) fn new_killer(config: &Config) -> Result<impl Killable> {
 
 #[cfg(feature = "blocking")]
 pub(crate) mod blocking {
-    use super::*;
+    use super::{ProcessInfos, Result};
 
     pub(crate) fn get_process_infos() -> Result<ProcessInfos> {
         crate::macos::get_process_infos()
@@ -138,7 +138,7 @@ pub(crate) mod blocking {
 
 #[cfg(feature = "tokio")]
 pub(crate) mod tokio {
-    use super::*;
+    use super::{ProcessInfos, Result};
 
     pub(crate) async fn get_process_infos() -> Result<ProcessInfos> {
         crate::macos::get_process_infos()
