@@ -6,12 +6,15 @@ C:\WINDOWS\system32\taskkill.exe /F /T /PID <process_id>
 
 platform: windows, arch: x86_64, exe: target/release/kill_tree_cli.exe, count: 100, total_ms: 1616, average_ms: 16
 platform: windows, arch: x86_64, exe: C:\WINDOWS\system32\taskkill.exe, count: 100, total_ms: 6167, average_ms: 61
+faster 3.816212871287129x
 
 platform: windows, arch: x86_64, exe: target/release/kill_tree_cli.exe, count: 200, total_ms: 2635, average_ms: 13
 platform: windows, arch: x86_64, exe: C:\WINDOWS\system32\taskkill.exe, count: 200, total_ms: 13425, average_ms: 67
+faster 5.094876660341556x
 
 platform: windows, arch: x86_64, exe: target/release/kill_tree_cli.exe, count: 300, total_ms: 4427, average_ms: 14
 platform: windows, arch: x86_64, exe: C:\WINDOWS\system32\taskkill.exe, count: 300, total_ms: 22351, average_ms: 74
+faster 5.048791506663655x
 
 ```sh
 # wmic cpu get NumberOfCores,NumberOfLogicalProcessors
