@@ -241,7 +241,7 @@ mod tests {
             parent_process_id: 1,
             name: "1".to_string(),
         };
-        assert_eq!(child_process_id_map_filter(&process_info), true);
+        assert!(child_process_id_map_filter(&process_info));
     }
 
     #[test]
@@ -251,7 +251,7 @@ mod tests {
             parent_process_id: 0,
             name: "1".to_string(),
         };
-        assert_eq!(child_process_id_map_filter(&process_info), false);
+        assert!(!child_process_id_map_filter(&process_info));
     }
 
     #[test]
@@ -271,7 +271,7 @@ mod tests {
                     _ => panic!("Unexpected source: {source:?}",),
                 }
             }
-            _ => panic!("Unexpected result: {result:?}",),
+            KillOutput::Killed { process_id } => panic!("Unexpected result: {process_id}"),
         }
     }
 
