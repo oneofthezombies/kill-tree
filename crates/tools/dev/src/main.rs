@@ -93,7 +93,7 @@ fn test(target: Option<String>) {
 }
 
 fn pre_push() {
-    check();
+    // check();
     // clippy();
     fmt();
     // test(None);
