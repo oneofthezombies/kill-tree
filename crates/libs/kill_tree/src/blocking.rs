@@ -66,14 +66,14 @@ pub fn get_available_max_process_id() -> u32 {
 ///
 /// # Errors
 ///
-/// ## InvalidProcessId
+/// ## `InvalidProcessId`
 /// Returns the process ID of the kernel or system, or if greater than the available maximum process ID.  
 ///
-/// ## InvalidCast
+/// ## `InvalidCast`
 /// Returned internally when an invalid type conversion occurs during a system API call.  
 /// This is an error that should not occur under normal circumstances.  
 ///
-/// ## InvalidProcEntry
+/// ## `InvalidProcEntry`
 /// TODO
 pub fn kill_tree(process_id: ProcessId) -> Result<Outputs> {
     kill_tree_with_config(process_id, &Config::default())
