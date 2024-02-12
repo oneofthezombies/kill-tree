@@ -168,7 +168,7 @@ pub(crate) fn get_process_infos() -> Result<ProcessInfos> {
 
 #[cfg(feature = "blocking")]
 pub(crate) mod blocking {
-    use super::*;
+    use super::{ProcessInfos, Result};
 
     pub(crate) fn get_process_infos() -> Result<ProcessInfos> {
         crate::windows::get_process_infos()
@@ -177,7 +177,7 @@ pub(crate) mod blocking {
 
 #[cfg(feature = "tokio")]
 pub(crate) mod tokio {
-    use super::*;
+    use super::{ProcessInfos, Result};
 
     pub(crate) async fn get_process_infos() -> Result<ProcessInfos> {
         crate::windows::get_process_infos()
