@@ -3,7 +3,8 @@ use crate::core::{
 };
 use tracing::{debug, instrument};
 
-const AVAILABLE_MAX_PROCESS_ID: u32 = 99999 - 1;
+/// In decimal, 99998.  
+pub(crate) const AVAILABLE_MAX_PROCESS_ID: u32 = 99999 - 1;
 
 pub(crate) fn validate_process_id(process_id: ProcessId) -> Result<()> {
     crate::unix::validate_process_id(process_id, AVAILABLE_MAX_PROCESS_ID)

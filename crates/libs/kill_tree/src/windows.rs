@@ -26,6 +26,11 @@ const SYSTEM_IDLE_PROCESS_PROCESS_ID: u32 = 0;
 /// process id of System
 const SYSTEM_PROCESS_ID: u32 = 4;
 
+/// In hexadecimal, 0xFFFFFFFF.  
+/// In decimal, 4294967295.  
+/// But actually process IDs are generated as multiples of 4.  
+pub(crate) const AVAILABLE_MAX_PROCESS_ID: u32 = u32::MAX;
+
 pub(crate) fn validate_process_id(process_id: ProcessId) -> Result<()> {
     match process_id {
         SYSTEM_IDLE_PROCESS_PROCESS_ID => Err(Error::InvalidProcessId {

@@ -11,6 +11,10 @@ use crate::macos as imp;
 #[cfg(windows)]
 use crate::windows as imp;
 
+pub(crate) fn get_available_max_process_id() -> u32 {
+    imp::AVAILABLE_MAX_PROCESS_ID
+}
+
 /// Create a map from parent process id to child process ids.
 pub(crate) fn get_child_process_id_map(
     process_infos: &[ProcessInfo],

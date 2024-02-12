@@ -4,8 +4,9 @@ use crate::{
 };
 use tracing::{debug, instrument};
 
-/// decimal value is 4194304
-const AVAILABLE_MAX_PROCESS_ID: u32 = 0x0040_0000;
+/// In hexadecimal, 0x400000.  
+/// In decimal, 4194304.  
+pub(crate) const AVAILABLE_MAX_PROCESS_ID: u32 = 0x0040_0000;
 
 pub(crate) fn validate_process_id(process_id: ProcessId) -> Result<()> {
     crate::unix::validate_process_id(process_id, AVAILABLE_MAX_PROCESS_ID)
