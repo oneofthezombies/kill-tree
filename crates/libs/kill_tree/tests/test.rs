@@ -1,4 +1,5 @@
 use std::{process::Command, sync::mpsc, thread, time::Duration};
+use tracing_test::traced_test;
 
 fn get_node_script_infinite() -> String {
     r"
@@ -25,6 +26,7 @@ fn get_node_script_spawn_infinite_child() -> String {
     .to_string()
 }
 
+#[traced_test]
 #[test]
 fn kill_tree_default() {
     let (tx, rx) = mpsc::channel();
@@ -50,6 +52,7 @@ fn kill_tree_default() {
         } => {
             assert_eq!(*process_id, target_process_id);
             assert_eq!(*parent_process_id, std::process::id());
+            // There are cases where the process does not start with node, so a log is left for confirmation.
             println!("name: {name}");
             assert!(name.starts_with("node"));
         }
@@ -99,6 +102,7 @@ fn kill_tree_with_config_sigkill() {
     thread.join().unwrap();
 }
 
+#[traced_test]
 #[test]
 fn kill_tree_with_config_include_target_false() {
     let (tx, rx) = mpsc::channel();
