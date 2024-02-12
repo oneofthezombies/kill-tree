@@ -2,6 +2,10 @@ use std::{process::Command, sync::mpsc, thread};
 use tracing::{subscriber, Level};
 use tracing_subscriber::FmtSubscriber;
 
+/// Initialize the global logger.
+///
+/// # Panics
+/// If setting the default subscriber fails.
 pub fn init_log() {
     subscriber::set_global_default(
         FmtSubscriber::builder()
