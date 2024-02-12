@@ -2,7 +2,7 @@ use std::{process::Command, sync::mpsc, thread, time::Duration};
 
 fn get_node_script_infinite() -> String {
     r"
-    console.log('infinite. pid:', process.pid);
+    // console.log('infinite. pid:', process.pid);
     setInterval(() => {}, 1000);
     "
     .to_string()
@@ -10,9 +10,10 @@ fn get_node_script_infinite() -> String {
 
 fn get_node_script_spawn_infinite_child() -> String {
     r#"
-    console.log('spawn child. pid:', process.pid);
+    // console.log('spawn child. pid:', process.pid);
     const { spawn } = require('child_process');
-    const child = spawn('node', ['-e', 'console.log("infinite. pid:", process.pid);setInterval(() => {}, 1000);'], {
+    // const child = spawn('node', ['-e', 'console.log("infinite. pid:", process.pid);setInterval(() => {}, 1000);'], {
+    const child = spawn('node', ['-e', 'setInterval(() => {}, 1000);'], {
         stdio: 'inherit',
     });
     child.on('exit', (code, signal) => {
