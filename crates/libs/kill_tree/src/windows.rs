@@ -15,12 +15,6 @@ use windows::Win32::{
     },
 };
 
-impl From<windows::core::Error> for Error {
-    fn from(error: windows::core::Error) -> Self {
-        Self::Windows(error)
-    }
-}
-
 /// process id of System Idle Process
 const SYSTEM_IDLE_PROCESS_PROCESS_ID: u32 = 0;
 

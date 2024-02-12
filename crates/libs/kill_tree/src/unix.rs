@@ -7,12 +7,6 @@ use tracing::instrument;
 const KERNEL_PROCESS_ID: u32 = 0;
 const INIT_PROCESS_ID: u32 = 1;
 
-impl From<nix::Error> for Error {
-    fn from(error: nix::Error) -> Self {
-        Self::Unix(error)
-    }
-}
-
 pub(crate) fn validate_process_id(process_id: ProcessId, available_max: ProcessId) -> Result<()> {
     match process_id {
         KERNEL_PROCESS_ID => Err(Error::InvalidProcessId {

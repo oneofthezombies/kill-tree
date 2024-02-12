@@ -27,7 +27,7 @@ impl std::fmt::Display for Error {
             Error::InvalidProcessId { process_id, reason } => {
                 write!(f, "Invalid process id: {process_id}. Reason: {reason}")
             }
-            Error::InvalidCast { source, reason } => {
+            Error::InvalidCast { reason, source } => {
                 write!(f, "Invalid cast. Reason: {reason}. Source: {source}")
             }
             Error::InvalidProcEntry {
@@ -53,6 +53,20 @@ impl std::error::Error for Error {}
 impl From<std::io::Error> for Error {
     fn from(error: std::io::Error) -> Self {
         Self::Io(error)
+    }
+}
+
+#[cfg(windows)]
+impl From<::windows::core::Error> for Error {
+    fn from(error: ::windows::core::Error) -> Self {
+        Self::Windows(error)
+    }
+}
+
+#[cfg(unix)]
+impl From<nix::Error> for Error {
+    fn from(error: nix::Error) -> Self {
+        Self::Unix(error)
     }
 }
 
@@ -139,5 +153,104 @@ pub(crate) mod tokio {
 
     pub(crate) trait ProcessInfosProvidable {
         async fn get_process_infos(&self) -> Result<ProcessInfos>;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn error_display_invalid_process_id() {
+        let error = Error::InvalidProcessId {
+            process_id: 0,
+            reason: "reason".to_string(),
+        };
+        assert_eq!(
+            format!("{}", error),
+            "Invalid process id: 0. Reason: reason"
+        );
+    }
+
+    #[test]
+    fn error_display_invalid_cast() {
+        let error = Error::InvalidCast {
+            reason: "reason".to_string(),
+            source: u32::try_from(-1).unwrap_err(),
+        };
+        assert_eq!(
+            format!("{}", error),
+            "Invalid cast. Reason: reason. Source: out of range integral type conversion attempted"
+        );
+    }
+
+    #[test]
+    fn error_display_invalid_proc_entry() {
+        let error = Error::InvalidProcEntry {
+            process_id: 0,
+            path: "/proc/0".to_string(),
+            reason: "reason".to_string(),
+            source: Some("source".parse::<u32>().unwrap_err()),
+        };
+        assert_eq!(
+            format!("{}", error),
+            "Invalid proc entry. Process id: 0. Path: /proc/0. Reason: reason. Source: Some(ParseIntError { kind: InvalidDigit })"
+        );
+    }
+
+    #[test]
+    fn error_display_io() {
+        let error = Error::Io(std::io::Error::new(std::io::ErrorKind::Other, "error"));
+        assert_eq!(format!("{}", error), "I/O error: error");
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn error_display_windows() {
+        let error = Error::Windows(windows::core::Error::OK);
+        assert_eq!(
+            format!("{}", error),
+            "Windows error: The operation completed successfully. (0x00000000)"
+        );
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn error_display_unix() {
+        let error = Error::Unix(nix::Error::UnsupportedOperation);
+        assert_eq!(format!("{}", error), "Unix error: UnsupportedOperation");
+    }
+
+    #[test]
+    fn from_io_error() {
+        let error = std::io::Error::new(std::io::ErrorKind::Other, "error");
+        let error = Error::from(error);
+        assert_eq!(format!("{}", error), "I/O error: error");
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn from_windows_error() {
+        let error = windows::core::Error::OK;
+        let error = Error::from(error);
+        assert_eq!(
+            format!("{}", error),
+            "Windows error: The operation completed successfully. (0x00000000)"
+        );
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn from_unix_error() {
+        let error = nix::Error::UnsupportedOperation;
+        let error = Error::from(error);
+        assert_eq!(format!("{}", error), "Unix error: UnsupportedOperation");
+    }
+
+    #[test]
+    fn default_config() {
+        let config = Config::default();
+        assert_eq!(config.signal, "SIGTERM");
+        assert_eq!(config.include_target, true);
     }
 }
