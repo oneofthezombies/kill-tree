@@ -85,10 +85,9 @@ The Tokio runtime, written in Rust, allows me to work on __Zero cost task based 
 
 #### How to Install
 
-Copy to clipboard and Paste to shell and enter.  
-Please, see the script contents. always SECURITY!
+Please, see the script contents. always SECURITY! Copy to clipboard and Paste to shell and enter.  
 
-##### Linux
+__Linux__
 
 > sudo curl -sSL https://raw.githubusercontent.com/oneofthezombies/kill-tree/main/installs/linux.sh | sh
 
