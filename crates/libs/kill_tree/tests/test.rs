@@ -1,11 +1,10 @@
-use kill_tree;
 use std::{process::Command, sync::mpsc, thread, time::Duration};
 
 fn get_node_script_infinite() -> String {
-    r#"
+    r"
     console.log('infinite. pid:', process.pid);
     setInterval(() => {}, 1000);
-    "#
+    "
     .to_string()
 }
 
