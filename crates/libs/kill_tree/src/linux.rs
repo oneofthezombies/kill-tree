@@ -1,5 +1,5 @@
 use crate::{
-    core::{Error, ProcessId, ProcessInfo, ProcessInfos, Result},
+    core::{Error, Killable, ProcessId, ProcessInfo, ProcessInfos, Result},
     Config,
 };
 use tracing::{debug, instrument};
@@ -142,13 +142,13 @@ pub(crate) fn child_process_id_map_filter(_process_info: &ProcessInfo) -> bool {
     false
 }
 
+pub(crate) fn new_killer(config: &Config) -> Result<impl Killable> {
+    crate::unix::new_killer(config)
+}
+
 #[cfg(feature = "blocking")]
 pub(crate) mod blocking {
     use super::*;
-
-    pub(crate) fn new_killer(config: &Config) -> Result<impl crate::blocking::Killable> {
-        crate::unix::blocking::new_killer(config)
-    }
 
     #[instrument]
     fn get_process_info(process_id: ProcessId, path: std::path::PathBuf) -> Result<ProcessInfo> {
@@ -196,10 +196,6 @@ pub(crate) mod blocking {
 #[cfg(feature = "tokio")]
 pub(crate) mod tokio {
     use super::*;
-
-    pub(crate) fn new_killer(config: &Config) -> Result<impl crate::tokio::Killable> {
-        crate::unix::tokio::new_killer(config)
-    }
 
     #[instrument]
     async fn get_process_info(
