@@ -87,7 +87,7 @@ fn test() {
 }
 
 fn bench() {
-    run!("cargo bench --workspace --all-targets --all-features");
+    run!("cargo bench --workspace --benches --all-features");
 }
 
 fn pre_push() {
