@@ -215,8 +215,11 @@ mod tests {
     #[cfg(unix)]
     #[test]
     fn error_display_unix() {
-        let error = Error::Unix(nix::Error::UnsupportedOperation);
-        assert_eq!(format!("{error}"), "Unix error: UnsupportedOperation");
+        let error = Error::Unix(nix::Error::EPERM);
+        assert_eq!(
+            format!("{error}"),
+            "Unix error: EPERM: Operation not permitted"
+        );
     }
 
     #[test]
@@ -240,9 +243,12 @@ mod tests {
     #[cfg(unix)]
     #[test]
     fn from_unix_error() {
-        let error = nix::Error::UnsupportedOperation;
+        let error = nix::Error::EPERM;
         let error = Error::from(error);
-        assert_eq!(format!("{error}"), "Unix error: UnsupportedOperation");
+        assert_eq!(
+            format!("{error}"),
+            "Unix error: EPERM: Operation not permitted"
+        );
     }
 
     #[test]
