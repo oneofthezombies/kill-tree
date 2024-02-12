@@ -164,6 +164,95 @@ pub(crate) mod tokio {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn validate_process_id_0() {
+        let process_id = 0;
+        let result = validate_process_id(process_id);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn validate_process_id_1() {
+        let process_id = 1;
+        let result = validate_process_id(process_id);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn validate_process_id_99998() {
+        let process_id = 99998;
+        let result = validate_process_id(process_id);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn validate_process_id_99999() {
+        let process_id = 99999;
+        let result = validate_process_id(process_id);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn child_process_id_map_filter_false() {
+        let process_info = ProcessInfo {
+            process_id: 0,
+            parent_process_id: 0,
+            name: "name".to_string(),
+        };
+        assert!(!child_process_id_map_filter(&process_info));
+    }
+
+    #[test]
+    fn get_process_info_0() {
+        let process_id = 0;
+        let result = get_process_info(process_id);
+        assert!(result.is_err());
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            "I/O error: Operation not permitted (os error 1)".to_string()
+        );
+    }
+
+    #[test]
+    fn get_process_info_1() {
+        let process_id = 1;
+        let result = get_process_info(process_id);
+        assert!(result.is_err());
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            "I/O error: Operation not permitted (os error 1)".to_string()
+        );
+    }
+
+    #[test]
+    fn get_process_info_self() {
+        let process_id = std::process::id();
+        let result = get_process_info(process_id);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn get_process_ids_test() {
+        let process_ids = get_process_ids().expect("Failed to get process ids");
+        assert!(process_ids.len() > 1);
+        assert!(process_ids.contains(&0));
+        assert!(process_ids.contains(&1));
+    }
+
+    #[test]
+    fn get_process_infos_test() {
+        let process_infos = get_process_infos().expect("Failed to get process infos");
+        assert!(process_infos.len() > 1);
+        assert!(process_infos
+            .iter()
+            .any(|x| x.process_id == std::process::id()));
+    }
+}
+
 #[allow(warnings)]
 #[allow(clippy::all)]
 #[allow(clippy::pedantic)]
