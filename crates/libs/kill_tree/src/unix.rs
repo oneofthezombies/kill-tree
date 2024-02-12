@@ -76,3 +76,93 @@ impl KillableBuildable for KillerBuilder {
         Ok(Killer { signal })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::get_available_max_process_id;
+
+    #[test]
+    fn test_validate_process_id_kernel() {
+        let result = validate_process_id(KERNEL_PROCESS_ID, 100);
+        assert!(result.is_err());
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            "Invalid process id: 0. Reason: Not allowed to kill kernel process"
+        );
+    }
+
+    #[test]
+    fn test_validate_process_id_init() {
+        let result = validate_process_id(INIT_PROCESS_ID, 100);
+        assert!(result.is_err());
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            "Invalid process id: 1. Reason: Not allowed to kill init process"
+        );
+    }
+
+    #[test]
+    fn test_validate_process_id_too_large() {
+        let result = validate_process_id(101, 100);
+        assert!(result.is_err());
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            "Invalid process id: 101. Reason: Process id is too large. process id: 101, available max process id: 100"
+        );
+    }
+
+    #[test]
+    fn test_validate_process_id_ok() {
+        let result = validate_process_id(100, 100);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn kii_sigterm() {
+        let target_process_id = get_available_max_process_id();
+        let kill_output =
+            kill(target_process_id, nix::sys::signal::Signal::SIGTERM).expect("Failed to kill");
+        match kill_output {
+            KillOutput::Killed { process_id: _ } => {
+                panic!("This should not happen");
+            }
+            KillOutput::MaybeAlreadyTerminated { process_id, source } => {
+                assert_eq!(process_id, target_process_id);
+                assert_eq!(source.to_string(), "Unix error: ESRCH: No such process");
+            }
+        }
+    }
+
+    #[test]
+    fn kii_sigkill() {
+        let target_process_id = get_available_max_process_id();
+        let kill_output =
+            kill(target_process_id, nix::sys::signal::Signal::SIGKILL).expect("Failed to kill");
+        match kill_output {
+            KillOutput::Killed { process_id: _ } => {
+                panic!("This should not happen");
+            }
+            KillOutput::MaybeAlreadyTerminated { process_id, source } => {
+                assert_eq!(process_id, target_process_id);
+                assert_eq!(source.to_string(), "Unix error: ESRCH: No such process");
+            }
+        }
+    }
+
+    #[test]
+    fn kii_sigint() {
+        let target_process_id = get_available_max_process_id();
+        let kill_output =
+            kill(target_process_id, nix::sys::signal::Signal::SIGINT).expect("Failed to kill");
+        match kill_output {
+            KillOutput::Killed { process_id: _ } => {
+                panic!("This should not happen");
+            }
+            KillOutput::MaybeAlreadyTerminated { process_id, source } => {
+                assert_eq!(process_id, target_process_id);
+                assert_eq!(source.to_string(), "Unix error: ESRCH: No such process");
+            }
+        }
+    }
+}
