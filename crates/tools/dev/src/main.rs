@@ -93,10 +93,10 @@ fn test(target: Option<String>) {
 }
 
 fn pre_push() {
-    // check();
-    // clippy();
-    // fmt();
-    // test(None);
+    check();
+    clippy();
+    fmt();
+    test(None);
 }
 
 fn init_log() {
