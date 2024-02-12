@@ -155,7 +155,10 @@ impl KillableBuildable for KillerBuilder {
 
 #[cfg(feature = "blocking")]
 pub(crate) mod blocking {
-    use super::*;
+    use super::{
+        debug, instrument, parse_proc_entry, parse_status, ProcessId, ProcessInfo, ProcessInfos,
+        Result,
+    };
     use crate::core::blocking::ProcessInfosProvidable;
 
     #[instrument]
@@ -211,7 +214,10 @@ pub(crate) mod blocking {
 
 #[cfg(feature = "tokio")]
 pub(crate) mod tokio {
-    use super::*;
+    use super::{
+        debug, instrument, parse_proc_entry, parse_status, Error, ProcessId, ProcessInfo,
+        ProcessInfos, Result,
+    };
     use crate::core::tokio::ProcessInfosProvidable;
 
     #[instrument]
