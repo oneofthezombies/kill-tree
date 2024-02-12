@@ -5,7 +5,7 @@ static EXE_PATH: &str = "target/release/kill_tree_cli.exe";
 
 fn main() {
     init_log();
-    let output = run(200, |target_process_id| {
+    let output = run(300, |target_process_id| {
         let mut command = Command::new(EXE_PATH);
         command.arg(target_process_id.to_string());
         command

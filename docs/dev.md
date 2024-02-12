@@ -16,19 +16,13 @@ OS Version:                10.0.22621 N/A Build 22621
 
 ```sh
 # rustc -vV
-rustc 1.75.0 (82e1608df 2023-12-21)
+rustc 1.78.0-nightly (1a648b397 2024-02-11)
 binary: rustc
-commit-hash: 82e1608dfa6e0b5569232559e3d385fea5a93112
-commit-date: 2023-12-21
+commit-hash: 1a648b397dedc98ada3dd3360f6d661ec2436c56
+commit-date: 2024-02-11
 host: x86_64-pc-windows-msvc
-release: 1.75.0
+release: 1.78.0-nightly
 LLVM version: 17.0.6
-```
-
-#### Local Build Command
-
-```sh
-cargo build --target=x86_64-pc-windows-msvc
 ```
 
 ### Linux
@@ -64,12 +58,6 @@ sudo apt install lld
 rustup target add x86_64-unknown-linux-musl
 ```
 
-#### Local Build Command
-
-```sh
-cargo build --target=x86_64-unknown-linux-musl
-```
-
 ### Macos
 
 #### Host Information
@@ -99,24 +87,6 @@ release: 1.75.0
 LLVM version: 17.0.6
 ```
 
-#### Requirements
-
-```sh
-brew install llvm
-```
-
-after install
-
-```sh
-echo 'export PATH="/opt/homebrew/opt/llvm/bin:$PATH"' >> ~/.zshrc
-```
-
-#### Local Build Command
-
-```sh
-cargo build --target=aarch64-apple-darwin
-```
-
 # Test environment
 
 ## Requirements
@@ -133,34 +103,4 @@ Please ensure `node` command.
 ```sh
 # node --version
 v20.11.0
-```
-
-# Deployment environment
-
-## Host Platform Architecture
-
-Macos Apple Silicon
-
-## Command
-
-```sh
-# Common
-RUSTFLAGS="-C target-feature=+crt-static"
-
-# Linux
-rustup target add x86_64-unknown-linux-musl
-brew install filosottile/musl-cross/musl-cross
-cargo build --target=x86_64-unknown-linux-musl
-
-# Windows
-rustup target add x86_64-pc-windows-msvc
-cargo install cargo-xwin
-cargo xwin build --target x86_64-pc-windows-msvc
-
-# Macos
-rustup target add x86_64-apple-darwin
-rustup target add aarch64-apple-darwin
-cargo install cargo-zigbuild
-brew install zig
-cd cli && cargo zigbuild --target universal2-apple-darwin
 ```

@@ -1,11 +1,11 @@
 use example_bench::{init_log, run};
 use std::process::Command;
 
-static EXE_PATH: &str = "taskkill.exe";
+static EXE_PATH: &str = "C:\\WINDOWS\\system32\\taskkill.exe";
 
 fn main() {
     init_log();
-    let output = run(200, |target_process_id| {
+    let output = run(300, |target_process_id| {
         let mut command = Command::new(EXE_PATH);
         command.arg("/F").arg("/T").arg("/PID");
         command.arg(target_process_id.to_string());
