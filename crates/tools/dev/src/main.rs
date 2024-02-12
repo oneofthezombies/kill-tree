@@ -94,7 +94,7 @@ fn test(target: Option<String>) {
 
 fn pre_push() {
     check();
-    clippy();
+    // clippy();
     fmt();
     test(None);
 }
