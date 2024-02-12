@@ -1,20 +1,36 @@
-windows kill-tree
-target/release/kill_tree_cli.exe <process_id>
+# Kill Tree vs Taskkill
 
-windows taskkill
-C:\WINDOWS\system32\taskkill.exe /F /T /PID <process_id>
+## Results
 
-platform: windows, arch: x86_64, exe: target/release/kill_tree_cli.exe, count: 100, total_ms: 1616, average_ms: 16
-platform: windows, arch: x86_64, exe: C:\WINDOWS\system32\taskkill.exe, count: 100, total_ms: 6167, average_ms: 61
-faster 3.816212871287129x
+| App | Kill Count | Total (ms) | Average (ms) | Faster Than Taskkill |
+| --- | --- | --- | --- | --- | 
+| Kill Tree | 100 | 1616 | 16 | 3.8x |
+| taskkill | 100 | 6167 | 61 | 1x |
 
-platform: windows, arch: x86_64, exe: target/release/kill_tree_cli.exe, count: 200, total_ms: 2635, average_ms: 13
-platform: windows, arch: x86_64, exe: C:\WINDOWS\system32\taskkill.exe, count: 200, total_ms: 13425, average_ms: 67
-faster 5.094876660341556x
+| App | Kill Count | Total (ms) | Average (ms) | Faster Than Taskkill |
+| --- | --- | --- | --- | --- | 
+| Kill Tree | 200 | 2635 | 13 | 5x |
+| taskkill | 200 | 13425 | 67 | 1x |
 
-platform: windows, arch: x86_64, exe: target/release/kill_tree_cli.exe, count: 300, total_ms: 4427, average_ms: 14
-platform: windows, arch: x86_64, exe: C:\WINDOWS\system32\taskkill.exe, count: 300, total_ms: 22351, average_ms: 74
-faster 5.048791506663655x
+| App | Kill Count | Total (ms) | Average (ms) | Faster Than Taskkill |
+| --- | --- | --- | --- | --- | 
+| Kill Tree | 300 | 4427 | 14 | 5x |
+| taskkill | 300 | 22351 | 74 | 1x |
+
+## Executable
+
+### Kill Tree
+
+build: `cargo build --package kill_tree_cli --bins --release`  
+executable: `target/release/kill_tree_cli.exe` <process_id>
+
+### Taskkill
+
+excutable: `C:\WINDOWS\system32\taskkill.exe /F /T /PID` <process_id>
+
+## Environment
+
+### CPU
 
 ```sh
 # wmic cpu get NumberOfCores,NumberOfLogicalProcessors
@@ -22,16 +38,22 @@ NumberOfCores  NumberOfLogicalProcessors
 8              16
 ```
 
+### Memory
+
 ```sh
 # systeminfo | findstr /C:"Total Physical Memory"
 Total Physical Memory:     16,270 MB
 ```
+
+### OS Version
 
 ```sh
 # systeminfo | findstr /B /C:"OS Name" /B /C:"OS Version"
 OS Name:                   Microsoft Windows 11 Pro
 OS Version:                10.0.22621 N/A Build 22621
 ```
+
+### Rust Compiler Version
 
 ```sh
 # rustc -vV
