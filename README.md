@@ -85,7 +85,14 @@ The Tokio runtime, written in Rust, allows me to work on __Zero cost task based 
 
 #### How to Install
 
-Please, see the script contents. always SECURITY! Copy to clipboard and Paste to shell and enter.  
+🚨 Please, see the __SCRIPT contents__. always SECURITY! 🚨  
+If there is a way to safely install the executable file, I would appreciate it if you could tell me!  \
+
+Copy to clipboard and Paste to shell and Enter.  
+
+__Windows__
+
+> iwr https://raw.githubusercontent.com/oneofthezombies/kill-tree/main/installs/windows.ps1 -UseBasicParsing | iex
 
 __Linux__
 
