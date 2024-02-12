@@ -45,239 +45,79 @@ pub fn get_available_max_process_id() -> u32 {
     crate::common::get_available_max_process_id()
 }
 
+/// Kills the target process and all of its children recursively.  
+/// # Platform-specifics
+///
+/// ## Windows
+/// Internally, `TerminateProcess` from `Win32` is used.  
+///
+/// ## Linux, Macos
+/// Internally, `kill` from `libc` is used.  
+/// Default signal is `SIGTERM`.  
+/// If you want to send a different `signal` instead of `SIGTERM`, use `kill_tree_with_config`.  
+///
+/// # Examples
+/// ```
+/// use kill_tree::{
+///     tokio::{get_available_max_process_id, kill_tree},
+///     Result,
+/// };
+///
+/// fn main() -> Result<()> {
+///     let _ = kill_tree(get_available_max_process_id())?;
+///     Ok(())
+/// }
+/// ```
 pub async fn kill_tree(process_id: ProcessId) -> Result<Outputs> {
     kill_tree_with_config(process_id, &Config::default()).await
 }
 
+/// Kills the target process and all of its children recursively using the given `Config`.  
+/// # Platform-specifics
+///
+/// ## Windows
+/// Internally, `TerminateProcess` from `Win32` is used.  
+///
+/// ## Linux, Macos
+/// Internally, `kill` from `libc` is used.  
+///
+/// # Examples
+///
+/// Kill processes using the `SIGKILL` signal.  
+/// ```
+/// use kill_tree::{
+///     blocking::{get_available_max_process_id, kill_tree_with_config},
+///     Config, Result,
+/// };
+///
+/// fn main() -> Result<()> {
+///     let config = Config {
+///         signal: String::from("SIGKILL"),
+///         ..Default::default()
+///     };
+///     let _ = kill_tree_with_config(get_available_max_process_id(), &config)?;
+///     Ok(())
+/// }
+/// ```
+///
+/// Kills all children __except the target process__.  
+/// ```
+/// use kill_tree::{
+///     blocking::{get_available_max_process_id, kill_tree_with_config},
+///     Config, Result,
+/// };
+///
+/// fn main() -> Result<()> {
+///     let config = Config {
+///         include_target: false,
+///         ..Default::default()
+///     };
+///     let _ = kill_tree_with_config(get_available_max_process_id(), &config)?;
+///     Ok(())
+/// }
+/// ```
 pub async fn kill_tree_with_config(process_id: ProcessId, config: &Config) -> Result<Outputs> {
     imp::validate_process_id(process_id)?;
     let process_infos = imp::tokio::get_process_infos().await?;
     crate::common::kill_tree_internal(process_id, config, process_infos)
 }
-
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
-//     use std::{
-//         ops::Index,
-//         process::{Command, Stdio},
-//         thread,
-//         time::Duration,
-//     };
-
-//     #[tokio::test]
-//     async fn hello_world() {
-//         let process = Command::new("node")
-//             .arg("../../../tests/resources/hello_world.mjs")
-//             .spawn()
-//             .unwrap();
-//         let target_process_id = process.id();
-//         let result = kill_tree(target_process_id).await;
-//         assert!(result.is_ok());
-//         let outputs = result.unwrap();
-//         let output = outputs.index(0);
-//         if let Output::Killed {
-//             process_id,
-//             parent_process_id: _,
-//             name: _,
-//         } = output
-//         {
-//             assert_eq!(*process_id, target_process_id);
-//         } else {
-//             panic!("Unexpected output: {:?}", output);
-//         }
-//     }
-
-//     #[tokio::test]
-//     async fn hello_world_with_sigkill() {
-//         let process = Command::new("node")
-//             .arg("../../../tests/resources/hello_world.mjs")
-//             .spawn()
-//             .unwrap();
-//         let target_process_id = process.id();
-//         let result = kill_tree_with_signal(target_process_id, "SIGKILL").await;
-//         assert!(result.is_ok());
-//         let outputs = result.unwrap();
-//         let output = outputs.index(0);
-//         if let tree::Output::Killed {
-//             process_id,
-//             parent_process_id: _,
-//             name: _,
-//         } = output
-//         {
-//             assert_eq!(*process_id, target_process_id);
-//         } else {
-//             panic!("Unexpected output: {:?}", output);
-//         }
-//     }
-
-//     #[tokio::test]
-//     async fn hello_world_with_sigterm() {
-//         let process = Command::new("node")
-//             .arg("../../../tests/resources/hello_world.mjs")
-//             .spawn()
-//             .unwrap();
-//         let target_process_id = process.id();
-//         let result = kill_tree_with_signal(target_process_id, "SIGTERM").await;
-//         assert!(result.is_ok());
-//         let outputs = result.unwrap();
-//         let output = outputs.index(0);
-//         if let tree::Output::Killed {
-//             process_id,
-//             parent_process_id: _,
-//             name: _,
-//         } = output
-//         {
-//             assert_eq!(*process_id, target_process_id);
-//         } else {
-//             panic!("Unexpected output: {:?}", output);
-//         }
-//     }
-
-//     #[tokio::test]
-//     async fn hello_world_with_sigint() {
-//         let process = Command::new("node")
-//             .arg("../../../tests/resources/hello_world.mjs")
-//             .spawn()
-//             .unwrap();
-//         let target_process_id = process.id();
-//         let result = kill_tree_with_signal(target_process_id, "SIGINT").await;
-//         assert!(result.is_ok());
-//         let outputs = result.unwrap();
-//         let output = outputs.index(0);
-//         if let tree::Output::Killed {
-//             process_id,
-//             parent_process_id: _,
-//             name: _,
-//         } = output
-//         {
-//             assert_eq!(*process_id, target_process_id);
-//         } else {
-//             panic!("Unexpected output: {:?}", output);
-//         }
-//     }
-
-//     #[tokio::test]
-//     async fn hello_world_with_sigquit() {
-//         let process = Command::new("node")
-//             .arg("../../../tests/resources/hello_world.mjs")
-//             .spawn()
-//             .unwrap();
-//         let target_process_id = process.id();
-//         let result = kill_tree_with_signal(target_process_id, "SIGQUIT").await;
-//         assert!(result.is_ok());
-//         let outputs = result.unwrap();
-//         let output = outputs.index(0);
-//         if let tree::Output::Killed {
-//             process_id,
-//             parent_process_id: _,
-//             name: _,
-//         } = output
-//         {
-//             assert_eq!(*process_id, target_process_id);
-//         } else {
-//             panic!("Unexpected output: {:?}", output);
-//         }
-//     }
-
-//     #[tokio::test]
-//     async fn sleep() {
-//         let process = Command::new("node")
-//             .arg("../../../tests/resources/sleep.mjs")
-//             .spawn()
-//             .unwrap();
-//         let target_process_id = process.id();
-//         let result = kill_tree(target_process_id).await;
-//         assert!(result.is_ok());
-//         let outputs = result.unwrap();
-//         let output = outputs.index(0);
-//         if let tree::Output::Killed {
-//             process_id,
-//             parent_process_id: _,
-//             name: _,
-//         } = output
-//         {
-//             assert_eq!(*process_id, target_process_id);
-//         } else {
-//             panic!("Unexpected output: {:?}", output);
-//         }
-//     }
-
-//     #[tokio::test]
-//     async fn hello_world_wait_after() {
-//         let mut process = Command::new("node")
-//             .stdin(Stdio::null())
-//             .stdout(Stdio::null())
-//             .stderr(Stdio::null())
-//             .arg("../../../tests/resources/hello_world.mjs")
-//             .spawn()
-//             .unwrap();
-//         let target_process_id = process.id();
-//         process.wait().unwrap();
-//         let result = kill_tree(target_process_id).await;
-//         assert!(result.is_ok());
-//         let outputs = result.unwrap();
-//         let output = outputs.index(0);
-//         if let tree::Output::MaybeAlreadyTerminated {
-//             process_id,
-//             reason: _,
-//         } = output
-//         {
-//             assert_eq!(*process_id, target_process_id);
-//         } else {
-//             panic!("Unexpected output: {:?}", output);
-//         }
-//     }
-
-//     #[tokio::test]
-//     async fn child() {
-//         let process = Command::new("node")
-//             .arg("../../../tests/resources/child/target.mjs")
-//             .spawn()
-//             .unwrap();
-//         let target_process_id = process.id();
-//         thread::sleep(Duration::from_secs(1));
-//         let result = kill_tree(target_process_id).await;
-//         assert!(result.is_ok());
-//         assert_eq!(result.unwrap().len(), 2);
-//     }
-
-//     #[tokio::test]
-//     async fn grandchild() {
-//         let process = Command::new("node")
-//             .arg("../../../tests/resources/grandchild/target.mjs")
-//             .spawn()
-//             .unwrap();
-//         let target_process_id = process.id();
-//         thread::sleep(Duration::from_secs(1));
-//         let result = kill_tree(target_process_id).await;
-//         assert!(result.is_ok());
-//         assert_eq!(result.unwrap().len(), 3);
-//     }
-
-//     #[tokio::test]
-//     async fn children() {
-//         let process = Command::new("node")
-//             .arg("../../../tests/resources/children/target.mjs")
-//             .spawn()
-//             .unwrap();
-//         let target_process_id = process.id();
-//         thread::sleep(Duration::from_secs(1));
-//         let result = kill_tree(target_process_id).await;
-//         assert!(result.is_ok());
-//         assert_eq!(result.unwrap().len(), 3);
-//     }
-
-//     #[tokio::test]
-//     async fn grandchildren() {
-//         let process = Command::new("node")
-//             .arg("../../../tests/resources/grandchildren/target.mjs")
-//             .spawn()
-//             .unwrap();
-//         let target_process_id = process.id();
-//         thread::sleep(Duration::from_secs(1));
-//         let result = kill_tree(target_process_id).await;
-//         assert!(result.is_ok());
-//         assert_eq!(result.unwrap().len(), 5);
-//     }
-// }
