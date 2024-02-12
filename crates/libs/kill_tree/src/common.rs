@@ -11,7 +11,36 @@ use crate::macos as imp;
 #[cfg(windows)]
 use crate::windows as imp;
 
-pub(crate) fn get_available_max_process_id() -> u32 {
+/// Returns the max available process ID.
+/// # Platform-specifics
+/// ## Windows
+/// In hexadecimal, 0xFFFFFFFF.  
+/// In decimal, 4294967295.  
+/// But actually process IDs are generated as multiples of 4.  
+///
+/// ## Linux
+/// In hexadecimal, 0x400000.  
+/// In decimal, 4194304.  
+///
+/// ## Macos
+/// In decimal, 99998.  
+///
+/// # Examples
+///
+/// ```
+/// use kill_tree::get_available_max_process_id;
+///
+/// #[cfg(windows)]
+/// assert!(get_available_max_process_id() == 0xFFFF_FFFF);
+///
+/// #[cfg(target_os = "linux")]
+/// assert!(get_available_max_process_id() == 0x0040_0000);
+///
+/// #[cfg(target_os = "macos")]
+/// assert!(get_available_max_process_id() == 99998);
+/// ```
+#[must_use]
+pub fn get_available_max_process_id() -> u32 {
     imp::AVAILABLE_MAX_PROCESS_ID
 }
 

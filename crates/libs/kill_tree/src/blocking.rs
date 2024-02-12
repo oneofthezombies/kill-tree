@@ -7,39 +7,6 @@ use crate::macos as imp;
 #[cfg(windows)]
 use crate::windows as imp;
 
-/// Returns the max available process ID.
-/// # Platform-specifics
-/// ## Windows
-/// In hexadecimal, 0xFFFFFFFF.  
-/// In decimal, 4294967295.  
-/// But actually process IDs are generated as multiples of 4.  
-///
-/// ## Linux
-/// In hexadecimal, 0x400000.  
-/// In decimal, 4194304.  
-///
-/// ## Macos
-/// In decimal, 99998.  
-///
-/// # Examples
-///
-/// ```
-/// use kill_tree::blocking::get_available_max_process_id;
-///
-/// #[cfg(windows)]
-/// assert!(get_available_max_process_id() == 0xFFFF_FFFF);
-///
-/// #[cfg(target_os = "linux")]
-/// assert!(get_available_max_process_id() == 0x0040_0000);
-///
-/// #[cfg(target_os = "macos")]
-/// assert!(get_available_max_process_id() == 99998);
-/// ```
-#[must_use]
-pub fn get_available_max_process_id() -> u32 {
-    crate::common::get_available_max_process_id()
-}
-
 /// Kills the target process and all of its children recursively.  
 /// # Platform-specifics
 ///
@@ -53,10 +20,7 @@ pub fn get_available_max_process_id() -> u32 {
 ///
 /// # Examples
 /// ```
-/// use kill_tree::{
-///     blocking::{get_available_max_process_id, kill_tree},
-///     Result,
-/// };
+/// use kill_tree::{blocking::kill_tree, get_available_max_process_id, Result};
 ///
 /// fn main() -> Result<()> {
 ///     let _ = kill_tree(get_available_max_process_id())?;
@@ -102,8 +66,7 @@ pub fn kill_tree(process_id: ProcessId) -> Result<Outputs> {
 /// Kill processes using the `SIGKILL` signal.  
 /// ```
 /// use kill_tree::{
-///     blocking::{get_available_max_process_id, kill_tree_with_config},
-///     Config, Result,
+///     blocking::kill_tree_with_config, get_available_max_process_id, Config, Result,
 /// };
 ///
 /// fn main() -> Result<()> {
@@ -119,8 +82,7 @@ pub fn kill_tree(process_id: ProcessId) -> Result<Outputs> {
 /// Kills all children __except the target process__.  
 /// ```
 /// use kill_tree::{
-///     blocking::{get_available_max_process_id, kill_tree_with_config},
-///     Config, Result,
+///     blocking::kill_tree_with_config, get_available_max_process_id, Config, Result,
 /// };
 ///
 /// fn main() -> Result<()> {
