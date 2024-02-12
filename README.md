@@ -3,7 +3,10 @@
 ![logo](docs/images/logo.jpg)
 
 🌳 Kill Tree is a library and CLI tool designed to terminate a specified process and all its child processes recursively, operating independently of other commands like kill or taskkill.  
-It is written in Rust and powered by [Tokio](https://github.com/tokio-rs/tokio).  
+It is written in Rust.  
+If you use this as a Rust library, it supports both synchronous and asynchronous implementation!  
+Asynchronous implementation is powerd by [Tokio](https://github.com/tokio-rs/tokio).  
+
 This project was inspired by [node-tree-kill](https://github.com/pkrumins/node-tree-kill). Thank you. 🤟  
 
 [![Build Status][actions-badge]][actions-url]
@@ -14,7 +17,17 @@ This project was inspired by [node-tree-kill](https://github.com/pkrumins/node-t
 [crates-badge]: https://img.shields.io/crates/v/kill-tree.svg
 [crates-url]: https://crates.io/crates/kill-tree
 
-## Why I Made This
+## Why I Created This
+
+### TL;DR
+
+---
+
+The reason I created this is because I have a case where I need to stop grandchild processes.  
+This is because the way to kill a grandchild process on the Windows platform is to use the `Win32` API to determine the process relationship and either kill them all (Kill Tree's implementation) or call the `taskkill` program.  
+Even my program is more than __3x faster__ than `taskkill`.  
+
+---
 
 This is my first Rust crate and CLI tool. it means I started it because it was a suitable project for development with Rust.  
 No multi-platform library or CLI existed that could terminate processes recursively.  
@@ -87,47 +100,48 @@ kill-tree 777 SIGKILL
 
 ### Using as Rust Library
 
-⚠️ Ensure this library is executed within a Tokio runtime environment.  
+#### Synchronous Method
 
 Add `kill_tree` to your dependencies.
 
 ```toml
 # Cargo.toml
 [dependencies]
-kill_tree = "0.1"
+kill_tree = "0.2"
 ```
+
+Synchronous api is started with `kill_tree::blocking`.  
 
 Kill process and its children recursively with default signal `SIGTERM`.  
 Returns a list of process information when a function is called.  
 Process information is `Killed` or `MaybeAlreadyTerminated`.  
 If process information is `Killed` type, it has `process_id`, `parent_process_id` and `name`.  
-Or `MaybeAlreadyTerminated` type, it has `process_id`, `reason`.  
+Or `MaybeAlreadyTerminated` type, it has `process_id`, `source`.  
 
 There are two types because they can be killed during the process of querying and killing processes.  
 Therefore, consider the operation successful even if the query or kill process appears to fail.  
 This is because the purpose of this library is to make the process `not exist` state.
 
 ```rust
-use kill_tree::kill_tree;
+use kill_tree::{blocking::kill_tree, Output, Result};
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let process_id = 12345;
-    let outputs = kill_tree(process_id).await.map_err(|e| e.to_string())?;
-    for output in outputs {
+fn main() -> Result<()> {
+    let process_id = 777;
+    let outputs = kill_tree(process_id)?;
+    for (index, output) in outputs.iter().enumerate() {
         match output {
-            kill_tree::tree::Output::Killed {
+            Output::Killed {
                 process_id,
                 parent_process_id,
                 name,
             } => {
                 println!(
-                    "Killed process. process id: {process_id}, parent process id: {parent_process_id}, name: {name}"
+                    "[{index}] Killed process. process id: {process_id}, parent process id: {parent_process_id}, name: {name}"
                 );
             }
-            kill_tree::tree::Output::MaybeAlreadyTerminated { process_id, reason } => {
+            Output::MaybeAlreadyTerminated { process_id, source } => {
                 println!(
-                    "Maybe already terminated process. process id: {process_id}, reason: {reason}"
+                    "[{index}] Maybe already terminated process. process id: {process_id}, source: {source}"
                 );
             }
         }
@@ -136,38 +150,81 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
-kill process and its children recursively with signal `SIGKILL`.
+Kill process and its children recursively with signal `SIGKILL`.
 
 ```rust
-use kill_tree::kill_tree_with_signal;
+use kill_tree::{blocking::kill_tree_with_config, Config, Result};
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let process_id = 12345;
-    let outputs = kill_tree_with_signal(process_id, "SIGKILL")
-        .await
-        .map_err(|e| e.to_string())?;
-    for output in outputs {
-        match output {
-            kill_tree::tree::Output::Killed {
-                process_id,
-                parent_process_id,
-                name,
-            } => {
-                println!(
-                    "Killed process. process id: {process_id}, parent process id: {parent_process_id}, name: {name}"
-                );
-            }
-            kill_tree::tree::Output::MaybeAlreadyTerminated { process_id, reason } => {
-                println!(
-                    "Maybe already terminated process. process id: {process_id}, reason: {reason}"
-                );
-            }
-        }
-    }
+fn main() -> Result<()> {
+    let process_id = 777;
+    let config = Config {
+        signal: "SIGKILL".to_string(),
+        ..Default::default()
+    };
+    let outputs = kill_tree_with_config(process_id, &config)?;
+    println!("outputs: {outputs:?}"); // The `outputs` value is the same as the example `kill_tree`.
     Ok(())
 }
 ```
+
+If you want to recursively kill all child processes except the current process when the `ctrl + c` (`command + c`) event occurs.
+
+```rust
+use kill_tree::{blocking::kill_tree_with_config, Config};
+use std::sync::mpsc::channel;
+
+fn cleanup_children() {
+    let current_process_id = std::process::id();
+    let config = Config {
+        include_target: false,
+        ..Default::default()
+    };
+    let result = kill_tree_with_config(current_process_id, &config);
+    println!("kill_tree_with_config: {result:?}");
+}
+
+fn main() {
+    let (tx, rx) = channel();
+
+    ctrlc::set_handler(move || {
+        cleanup_children();
+        tx.send(()).expect("Could not send signal on channel.");
+    })
+    .expect("Error setting handler.");
+
+    println!("Current process id: {}", std::process::id());
+    println!("Waiting for signal...");
+    rx.recv().expect("Could not receive from channel.");
+    println!("Got it! Exiting...");
+}
+```
+
+#### Asynchronous Method
+
+Add `kill_tree` to your dependencies with feature `tokio`.
+
+```toml
+# Cargo.toml
+[dependencies]
+kill_tree = { version = "0.2", features = ["tokio"] }
+```
+
+Synchronous api is started with `kill_tree::tokio`.  
+
+Kill process and its children recursively with default signal `SIGTERM`.  
+
+```rust
+use kill_tree::{get_available_max_process_id, tokio::kill_tree, Result};
+
+#[tokio::main]
+async fn main() -> Result<()> {
+    let outputs = kill_tree(get_available_max_process_id()).await?;
+    println!("outputs: {outputs:?}"); // The `outputs` value is the same as the example `kill_tree`.
+    Ok(())
+}
+```
+
+When sending other signals or receiving and processing `ctrl + c` events, all you have to do is change the above `kill_tree::blocking` api to `kill_tree::tokio` and perform `await` processing, and it will be equivalent.  
 
 ## Support Platform and Architecture
 
@@ -181,7 +238,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 | Macos | aarch64 | ✅ |
 
 This CLI and library depend on an operating system's system library.  
-Because it's the operating system that owns the processes.
+Because it's the operating system that owns the processes.  
+But, don't worry! It's an OS default library, so there's no need to install anything additional!  
 
 | Platform | Dependencies |
 | --- | --- |
