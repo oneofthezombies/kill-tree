@@ -18,7 +18,7 @@ if [ -z "$bin_path" ]; then
 fi
 
 temp_dir=$(mktemp -d)
-cd $temp_dir
+cd -- "$temp_dir"
 
 echo "If required, please enter your password for sudo access..."
 
@@ -28,8 +28,8 @@ curl -L -s https://api.github.com/repos/oneofthezombies/kill-tree/releases/lates
     cut -d '"' -f 4 | \
     xargs curl -L -s -o kill-tree && \
     chmod +x kill-tree && \
-    mv -f kill-tree $bin_path/kill-tree && \
-    rm -rf $temp_dir
+    mv -f kill-tree "$bin_path/kill-tree" && \
+    rm -rf -- "$temp_dir"
 
 echo "kill-tree install location: $bin_path/kill-tree"
 
